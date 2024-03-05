@@ -1,0 +1,7 @@
+bundle.js
+demo-*/package-lock.json
+demo-*/dist/
+dist/*
+!dist/Control.Geocoder.css
+docs/
+node_modules/
