@@ -14,7 +14,12 @@ return new class extends Migration
         Schema::create('case_types', function (Blueprint $table) {
             $table->id();
             $table->string('cases');
+            $table->unsignedBigInteger('created_by');
+            $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamps();
+
+            $table->foreign('created_by')->references('id')->on('users');
+            $table->foreign('updated_by')->references('id')->on('users');
         });
     }
 

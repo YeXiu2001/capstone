@@ -1,4 +1,4 @@
-<script src="{{url('assets/libs/jquery/jquery.min.js')}}"></script>
+
 <script src="{{url('assets/libs/bootstrap/js/bootstrap.bundle.min.js')}}"></script>
 <script src="{{url('assets/libs/metismenu/metisMenu.min.js')}}"></script>
 <script src="{{url('assets/libs/simplebar/simplebar.min.js')}}"></script>
@@ -9,6 +9,9 @@
 
 <!-- dashboard init -->
 <script src="{{url('assets/js/pages/dashboard.init.js')}}"></script>
+ <!-- form repeater js -->
+
+<script src="{{url('assets/js/pages/form-repeater.int.js') }}"></script>
 
 <!-- App js -->
 <script src="{{url('assets/js/app.js')}}"></script>

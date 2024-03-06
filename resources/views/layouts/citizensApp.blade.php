@@ -34,9 +34,19 @@
             <ul class="nav nav-pills">
                 <li class="nav-item"><a href="#" class="nav-link" aria-current="page">Home</a></li>
                 <li class="nav-item"><a href="#" class="nav-link">Profile</a></li>
-                <li class="nav-item"><a href="#" class="nav-link">Placeholder2</a></li>
-                <!-- <li class="nav-item"><a href="#" class="nav-link">FAQs</a></li> -->
                 <li class="nav-item"><a href="#" class="nav-link">About</a></li>
+                <!-- <li class="nav-item"><a href="#" class="nav-link">FAQs</a></li> -->
+                <li class="nav-item">
+                    <a href="{{ route('logout') }}" class="nav-link"  
+                        onclick="event.preventDefault();
+                        document.getElementById('logout-form').submit();">
+                         <i class="bx bx-log-out-circle"></i>
+                        <span key="t-chat">{{ __('Logout') }}</span>
+                    </a>
+                    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                        @csrf
+                    </form>
+                </li>
             </ul>
         </header>
     </div> 

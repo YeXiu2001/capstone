@@ -14,9 +14,10 @@ class CitizenController extends Controller
     public function index()
     {
         // $LoggedInUser = auth()->user()->name;
-
         return view('citizens.index');
     }
+
+
 
 
 }
