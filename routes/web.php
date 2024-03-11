@@ -37,6 +37,10 @@ Route::get('/home', [HomeController::class, 'index'])->name('home');
 /** --------------------------Admin Controller ----------------------- */
 Route::get('/incident_types', [mainmenuController::class, 'incident_types_view']);
 Route::post('/add-incident', [mainmenuController::class, 'add_incident_type']);
+Route::get('/fetch-incident-tbl', [mainmenuController::class, 'fetchIncidentTbl']);
+Route::delete('/delete-incident/{id}', [mainmenuController::class, 'deleteIncidentType']);
+Route::get('/get-incident-type/{id}', [mainmenuController::class, 'getIncidentType']);
+Route::post('/update-incident-type/{id}', [mainmenuController::class, 'updateIncidentType']);
 /** --------------------------../Admin Controller ----------------------- */
 Route::resources([
     '/roles' => RoleController::class,

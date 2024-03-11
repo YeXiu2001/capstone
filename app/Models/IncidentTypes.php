@@ -9,7 +9,7 @@ class IncidentTypes extends Model
 {
     use HasFactory;
 
-    protected $table = 'incident_types';
+    protected $table = 'case_types';
 
     protected $fillable = [
         'id',
@@ -20,11 +20,13 @@ class IncidentTypes extends Model
         'updated_at'
     ];
 
-    public function created_by(){
+    protected $casts = ['foo' => 'json'];
+    
+    public function createdByUser(){
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function updated_by(){
+    public function updatedByUser(){
         return $this->belongsTo(User::class, 'updated_by');
     }
 }
