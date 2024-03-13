@@ -2,6 +2,7 @@
         
     <meta charset="utf-8" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     <title>ICDRRMO Information System
     </title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,7 +13,8 @@
     <link href="{{url('assets/css/bootstrap.min.css')}}" rel="stylesheet" type="text/css" />
     <!-- Icons Css -->
     <link href="{{url('assets/css/icons.min.css')}}" rel="stylesheet" type="text/css" />
-
+    <!-- select2 -->
+    <link href="{{url('assets/libs/select2/css/select2.min.css') }}" rel="stylesheet" type="text/css" />
     
     
     <!-- App Css-->

@@ -12,7 +12,7 @@
  <!-- form repeater js -->
 
 <script src="{{url('assets/js/pages/form-repeater.int.js') }}"></script>
-
+<script src="{{url('assets/libs/select2/js/select2.min.js') }}"></script>
 <!-- App js -->
 <script src="{{url('assets/js/app.js')}}"></script>
 

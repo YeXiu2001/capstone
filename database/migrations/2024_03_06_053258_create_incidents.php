@@ -16,14 +16,14 @@ return new class extends Migration
             $table->string('reporter');
             $table->string('contact');
             $table->string('address');
-            $table->decimal('lat');
-            $table->decimal('long');
+            $table->string('lat');
+            $table->string('long');
             $table->unsignedBigInteger('incident');
-            $table->string('eventdesc');
-            $table->string('imagedir');
+            $table->string('eventdesc')->nullable();
+            $table->string('imagedir')->nullable();
             $table->enum('status', ['pending', 'ongoing', 'resolved', 'dismissed'])->default('pending');
-            $table->unsignedBigInteger('admin_handler');
-            $table->unsignedBigInteger('deployed_rt');
+            $table->unsignedBigInteger('admin_handler')->nullable();
+            $table->unsignedBigInteger('deployed_rt')->nullable();
             $table->timestamps();
 
             $table->foreign('incident')->references('id')->on('case_types');

@@ -28,6 +28,7 @@ Auth::routes();
 
 /** --------------------------Citizen Controller ----------------------- */
 Route::get('/userHome', [CitizenController::class, 'index']);
+Route::post('/add-incident-report', [CitizenController::class, 'add_incident_report']);
 /** -------------------------- ../Citizen Controller ----------------------- */
 
 /** --------------------------Home Controller ----------------------- */

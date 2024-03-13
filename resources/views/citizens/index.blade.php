@@ -1,5 +1,5 @@
 @extends('layouts.citizensApp')
-
+<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
 <!-- Leaflet Dependencies -->
     <!-- leaflet CSS -->
     <link rel="stylesheet" href="{{url('assets/libs/leaflet/leaflet.css') }}"/>
@@ -24,22 +24,35 @@
             position: relative;
         }
 
-        .btn-container{
+        #report_witness{
             position: absolute;
             bottom: 20px;
             left: 20px;
             z-index: 1000;
         }
 
+        #sos{
+
+            position: absolute;
+            bottom: 20px; /* Change this to vertically center it */
+            left: 50%; /* Horizontally center */
+            transform: translate(-50%, 50%); /* Adjust positioning to truly center */
+            z-index: 1000;
+
+            width: 70px; 
+            height: 70px; 
+            border-radius: 35px; 
+            font-size: 20px; 
+            text-align: center; 
+        }
+
     </style>
 
 <div class="map-container m-4">
     <div id="map"></div>
-    
-    <div class="btn-container">
-        <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#myloc_report_modal">Report on my Location</button>
-        <button class="btn btn-warning" >Report</button>
-    </div>
+        <button class="btn btn-warning" id="report_witness">I AM A WITNESS</button>
+
+        <button class="btn btn-danger" id="sos" name="sos" data-bs-toggle="modal" data-bs-target="#myloc_report_modal">SOS</button>
 </div>
 
 
@@ -53,21 +66,15 @@
           </div>
 
           <div class="modal-body">
-        <form id="addDataForm">
-
+        <form id="addIncidentReportForm">
+        @csrf
         <!-- lat and long -->
         <div class="input-group pt-2 col-auto">
           <span class="input-group-text">Lat and Lng</span>
-          <input type="text" id="lat" name="lat" class="form-control" disabled>
-          <input type="text" id="long" name="long" class="form-control" disabled>
+          <input type="text" id="lat" name="lat" class="form-control" >
+          <input type="text" id="long" name="long" class="form-control" >
         </div>
         <!-- lat and long -->
-
-        <!-- name -->
-        <div class="pt-2">
-            <input type="text" id="name" name="name" value='{{ auth()->user()->name }}' class="form-control" placeholder="Name (e.g Juan Dela Cruz)" disabled>
-          </div>
-        <!-- name -->
 
           <!-- address -->
           <div class="pt-2">
@@ -78,14 +85,13 @@
         <!-- incidents -->
           <div class="input-group pt-2">
             <div class="input-group-prepend col-2">
-              <label class="input-group-text" for="event">Event</label>
+              <label class="input-group-text" for="event">Incident</label>
             </div>
-            <select class="select col-10" id="event" name="event" required>
-              <option value="" selected hidden>Choose..If others provide detailed description.</option>
-              <option>Mountain Search</option>
-              <option>Water Search</option>
-              <option>Trauma Cases</option>
-              <option>Medical Cases</option>
+            <select class="form-control select2 col-10" id="incident" name="incident" required style="width: 83%;">
+              <option value="" selected hidden>Select Incident</option>
+              @foreach($incident_types as $incident)
+              <option value="{{$incident->id}}">{{$incident->cases}}</option>
+              @endforeach
             </select>
           </div>
         <!-- incidents -->
@@ -94,10 +100,17 @@
 
         <!-- event description -->
         <div class="pt-2">
-        <textarea class="form-control pt-2" id="eventdesc" name="eventdesc" rows="3" placeholder = "Enter Event Description" required></textarea>
+        <textarea class="form-control pt-2" id="eventdesc" name="eventdesc" rows="5" placeholder = "Enter Event Description" required></textarea>
         </div>
         <!-- event description -->
-          </div>
+
+        <!-- image -->
+        <div class="pt-2">
+        <input class="form-control" type="file" id="image" name="image" accept="image/*" capture="environment">
+        </div>
+        <!-- image -->
+          </div><!-- Modal body --> 
+          
           
           <div class="modal-footer bg-light">
             <button type="button" id="cancelmod" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -212,10 +225,41 @@ fetch(geoapifyUrl)
         });
     });
 
+    $('#incident').select2({
+            dropdownParent: $('#myloc_report_modal')
+        });
+
+
     // Optionally, stop locating when the modal is hidden if continuous tracking is not needed
     $('#myloc_report_modal').on('hidden.bs.modal', function () {
         map.stop();
     });
+  });
+
+
+  document.getElementById('addIncidentReportForm').addEventListener('submit', function(e){
+        e.preventDefault(); // Prevent default form submission
+
+        var formData = new FormData(this);
+
+        for (let [key, value] of formData.entries()) {
+            console.log(key, value);
+        }
+        fetch('/add-incident-report',{
+            method: 'POST',
+            body: formData,
+
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data); // Handle success
+            alert('Incident Report Added Successfully');
+            // Optionally, clear the form or redirect the user
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to add incident report');
+        });
   });
     </script>
 <!-- Report on my Location -->
@@ -227,9 +271,9 @@ fetch(geoapifyUrl)
 <!-- Leaflet JS -->
 <script src="{{url('assets/libs/leaflet/leaflet.js') }}"></script>
 <!-- leaflet Providers -->
-<script src="{{ url('assets/js/maps/leaflet-providers.js') }}"></script>
+<script src="{{url('assets/js/maps/leaflet-providers.js') }}"></script>
 <!-- leaflet control geocoder -->
-<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+<script src="{{url('assets/js/maps/Control-Geocoder.js') }}"></script>
 <!-- leaflet locate control -->
 <script src="{{url('assets/js/maps/L.Control.Locate.min.js') }}"></script>
 @endsection
