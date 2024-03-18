@@ -13,6 +13,9 @@
 
 <script src="{{url('assets/js/pages/form-repeater.int.js') }}"></script>
 <script src="{{url('assets/libs/select2/js/select2.min.js') }}"></script>
+
+<!-- driverjs -->
+<script src="{{url('assets/libs/driver.js/dist/driver.js.iife.js') }}"></script>
 <!-- App js -->
 <script src="{{url('assets/js/app.js')}}"></script>
 

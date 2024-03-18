@@ -58,7 +58,4 @@ class CitizenController extends Controller
             return response()->json(['error' => 'Failed to add incident report: ' . $e->getMessage()], 500);
         }
     }
-
-
-
 }

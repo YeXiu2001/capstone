@@ -54,7 +54,7 @@
 
     </div>
 
-    @include('layouts.components.footer')
+
 
     @include('layouts.components.script')
     

@@ -24,14 +24,14 @@
                 </li>
 
                 <li>
-                    <a href="#" class="waves-effect">
+                    <a href="responseTeams" class="waves-effect">
                         <i class="bx bxs-ambulance"></i>
                         <span key="t-chat">Response Teams</span>
                     </a>
                 </li>
 
                 <li>
-                    <a href="#" class="waves-effect">
+                    <a href="reports" class="waves-effect">
                         <i class="bx bxs-report"></i>
                         <span key="t-chat">View Reports</span>
                     </a>

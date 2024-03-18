@@ -42,6 +42,20 @@ Route::get('/fetch-incident-tbl', [mainmenuController::class, 'fetchIncidentTbl'
 Route::delete('/delete-incident/{id}', [mainmenuController::class, 'deleteIncidentType']);
 Route::get('/get-incident-type/{id}', [mainmenuController::class, 'getIncidentType']);
 Route::post('/update-incident-type/{id}', [mainmenuController::class, 'updateIncidentType']);
+
+
+Route::get('/reports', [mainmenuController::class, 'reports_view']);
+
+
+Route::get('/responseTeams', [mainmenuController::class, 'teams_view']);
+Route::post('/add-rteams', [mainmenuController::class, 'add_rteams']);
+Route::post('/add-member', [mainmenuController::class, 'add_teammember']);
+Route::get('/fetch-teamsmembers-tbl', [mainmenuController::class, 'fetchTeamsMembersTbl']);
+Route::get('/fetch-teams-tbl', [mainmenuController::class, 'fetchTeamsTbl']);
+Route::delete('/delete-teammem/{id}', [mainmenuController::class, 'deleteRTmember']);
+Route::delete('/delete-teams/{id}', [mainmenuController::class, 'deleteTeams']);
+Route::get('/get-team/{id}', [mainmenuController::class, 'getTeamID']);
+Route::post('/update-team/{id}', [mainmenuController::class, 'updateTeam']);
 /** --------------------------../Admin Controller ----------------------- */
 Route::resources([
     '/roles' => RoleController::class,

@@ -10,6 +10,8 @@
     <!-- leaflet geocoder for search -->
     <link rel="stylesheet" href="{{url('assets/js/maps/Control.Geocoder.css') }}" />
 
+
+
 <!-- Leaflet Dependencies -->
 @section('content')
 
@@ -34,7 +36,7 @@
         #sos{
 
             position: absolute;
-            bottom: 20px; /* Change this to vertically center it */
+            bottom: 50px; /* Change this to vertically center it */
             left: 50%; /* Horizontally center */
             transform: translate(-50%, 50%); /* Adjust positioning to truly center */
             z-index: 1000;
@@ -50,11 +52,9 @@
 
 <div class="map-container m-4">
     <div id="map"></div>
-        <button class="btn btn-warning" id="report_witness">I AM A WITNESS</button>
-
+        <!-- <button class="btn btn-warning" id="report_witness" name="report_witness">I AM A WITNESS</button> -->
         <button class="btn btn-danger" id="sos" name="sos" data-bs-toggle="modal" data-bs-target="#myloc_report_modal">SOS</button>
 </div>
-
 
 <!-- Report on my Location Modal -->
 <div class="modal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" id="myloc_report_modal">
@@ -84,10 +84,7 @@
 
         <!-- incidents -->
           <div class="input-group pt-2">
-            <div class="input-group-prepend col-2">
-              <label class="input-group-text" for="event">Incident</label>
-            </div>
-            <select class="form-control select2 col-10" id="incident" name="incident" required style="width: 83%;">
+            <select class="form-control select2 col-10" id="incident" name="incident" required style="width: 100%;">
               <option value="" selected hidden>Select Incident</option>
               @foreach($incident_types as $incident)
               <option value="{{$incident->id}}">{{$incident->cases}}</option>
@@ -114,7 +111,7 @@
           
           <div class="modal-footer bg-light">
             <button type="button" id="cancelmod" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-            <button type="submit" class="btn btn-primary" id="myloc-submit" name="myloc-submit">Save</button>
+            <button type="submit" class="btn btn-primary" id="myloc-submit" name="myloc-submit">Submit</button>
           </div>
           </form>
         </div>
@@ -253,16 +250,35 @@ fetch(geoapifyUrl)
         .then(response => response.json())
         .then(data => {
             console.log(data); // Handle success
-            alert('Incident Report Added Successfully');
-            // Optionally, clear the form or redirect the user
+            $('#myloc_report_modal').modal('hide');
+            $('#addIncidentReportForm').trigger('reset');
+            Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: 'Reported Successfully',
+                        showConfirmButton: false,
+                        timer:1500,
+                    });
+                    map.stop();
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Failed to add incident report');
+            $('#myloc_report_modal').modal('hide');
+            $('#addIncidentReportForm').trigger('reset');
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'Reporting Failed',
+              showConfirmButton: false,
+              timer:1500,
+            });
+
+            map.stop();
         });
   });
     </script>
 <!-- Report on my Location -->
+
 
 
 <script src="{{url('assets/js/maps/allBarangay.js')}}"></script>
@@ -276,4 +292,5 @@ fetch(geoapifyUrl)
 <script src="{{url('assets/js/maps/Control-Geocoder.js') }}"></script>
 <!-- leaflet locate control -->
 <script src="{{url('assets/js/maps/L.Control.Locate.min.js') }}"></script>
+
 @endsection

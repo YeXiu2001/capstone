@@ -207,8 +207,6 @@ $(document).on('click', '.delete-btn', function() {
                         showConfirmButton: false,
                         timer:1500,
                     });
-
-                    fetchIncidentTable();
                 } else {
                     alert('Something went wrong. Please try again.');
                 }

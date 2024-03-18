@@ -14,11 +14,12 @@ return new class extends Migration
         Schema::create('response_teams', function (Blueprint $table) {
             $table->id();
             $table->string('team_name');
-            $table->unsignedBigInteger('members');
-            $table->ENUM('status', ['available', 'unavailable', 'busy'])->default('unavailable');
+            $table->unsignedBigInteger('created_by');
+            $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamps();
-
-            $table->foreign('members')->references('id')->on('users');
+            
+            $table->foreign('created_by')->references('id')->on('users');
+            $table->foreign('updated_by')->references('id')->on('users');
         });
     }
 

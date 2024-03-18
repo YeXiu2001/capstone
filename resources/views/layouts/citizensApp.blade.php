@@ -19,7 +19,6 @@
             padding-left: 0;
             padding-right: 0;
             margin: 0px 0px 24px
-
         }
     }
 </style>

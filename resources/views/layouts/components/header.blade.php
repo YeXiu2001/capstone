@@ -6,19 +6,19 @@
             <div class="navbar-brand-box">
                 <a href="/home" class="logo logo-dark">
                     <span class="logo-sm">
-                        <img src="{{url('assets/images/logo.svg')}}" alt="" height="22">
+                        <img src="" alt="" height="22">
                     </span>
                     <span class="logo-lg">
-                        <img src="{{url('assets/images/logo-dark.png')}}" alt="" height="17">
+                        <img src="" alt="" height="17">
                     </span>
                 </a>
 
                 <a href="/home" class="logo logo-light">
                     <span class="logo-sm">
-                        <img src="{{url('assets/images/logo-light.svg')}}" alt="" height="22">
+                        <img src="" alt="" height="22">
                     </span>
                     <span class="logo-lg">
-                        <img src="{{url('assets/images/logo-light.png')}}" alt="" height="19">
+                        <img src="" alt="" height="19">
                     </span>
                 </a>
             </div>
@@ -57,7 +57,7 @@
                 data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     <img class="rounded-circle header-profile-user" src="{{url('assets/images/users/avatar-1.jpg')}}"
                         alt="Header Avatar">
-                    <span class="d-none d-xl-inline-block ms-1" key="t-henry">Henry</span>
+                    <span class="d-none d-xl-inline-block ms-1" key="t-henry">{{auth()->user()->name}}</span>
                     <i class="mdi mdi-chevron-down d-none d-xl-inline-block"></i>
                 </button>
                 <div class="dropdown-menu dropdown-menu-end">
