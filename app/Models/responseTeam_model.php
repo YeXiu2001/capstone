@@ -14,12 +14,18 @@ class responseTeam_model extends Model
     protected $fillable = [
         'id',
         'team_name',
+        'status',
         'created_by',
         'updated_by',
         'created_at',
         'updated_at',
     ];
 
+    CONST STATUS_OPTIONS = [
+        'available' => 'Available',
+        'unavailable' => 'Inactive',
+        'busy' => 'Busy',
+    ];
 
     public function createdByUser(){
         return $this->belongsTo(User::class, 'created_by');
@@ -28,5 +34,9 @@ class responseTeam_model extends Model
     public function updatedByUser(){
         return $this->belongsTo(User::class, 'updated_by');
     }
+
+    // public function members(){
+    //     return $this->hasMany(rtMembers_model::class, 'team_id');
+    // }
     
 }

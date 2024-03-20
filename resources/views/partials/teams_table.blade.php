@@ -3,6 +3,7 @@
                             <thead>
                                 <tr>
                                     <th>Team Name</th>
+                                    <th>Status</th>
                                     <th>Created By</th>
                                     <th>Updated By</th>
                                     <th>Action</th>
@@ -12,6 +13,7 @@
                             @foreach($forteams as $teamtbl)
                                     <tr>
                                         <td>{{ $teamtbl->team_name ?? 'N/A' }}</td>
+                                        <td>{{  App\Models\responseTeam_model::STATUS_OPTIONS[$teamtbl->status] ?? 'N/A'}}</td>
                                         <td>{{ $teamtbl->createdByUser->name ?? 'N/A' }}</td>
                                         <td>{{ $teamtbl->UpdatedByUser->name ?? 'N/A' }}</td>
                                         <td>

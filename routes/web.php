@@ -56,6 +56,9 @@ Route::delete('/delete-teammem/{id}', [mainmenuController::class, 'deleteRTmembe
 Route::delete('/delete-teams/{id}', [mainmenuController::class, 'deleteTeams']);
 Route::get('/get-team/{id}', [mainmenuController::class, 'getTeamID']);
 Route::post('/update-team/{id}', [mainmenuController::class, 'updateTeam']);
+Route::get('/fetch-teams-options', [mainmenuController::class, 'fetchTeamsOptions']);
+
+Route::get('/get-rtmember/{id}', [mainmenuController::class, 'getRTmemberID']);
 /** --------------------------../Admin Controller ----------------------- */
 Route::resources([
     '/roles' => RoleController::class,

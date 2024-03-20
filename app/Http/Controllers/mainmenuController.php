@@ -100,13 +100,13 @@ class mainmenuController extends Controller
         $users = User::select('id', 'name')->get();
         $teams = responseTeam_model::select('id', 'team_name')->get();
 
-        $rtmems = rtMembers_model::with(['createdByUser:id,name', 'teamRefTeams:id,team_name', 'member:id,name'])
-        ->select('id', 'team_id', 'member_id', 'created_by', 'status', 'created_at')
+        $rtmems = rtMembers_model::with(['createdByUser:id,name', 'updatedByUser:id,name', 'teamRefTeams:id,team_name', 'member:id,name'])
+        ->select('id', 'team_id', 'member_id', 'created_by', 'updated_by', 'created_at')
         ->orderBy('created_at', 'desc')
         ->paginate(2);
 
         $forteams = responseTeam_model::with(['createdByUser:id,name', 'updatedByUser:id,name'])
-                    ->select('id', 'team_name', 'created_by', 'updated_by', 'created_at', 'updated_at')
+                    ->select('id', 'team_name', 'status', 'created_by', 'updated_by', 'created_at', 'updated_at')
                     ->orderBy('created_at', 'desc')
                     ->paginate(2);
 
@@ -114,8 +114,8 @@ class mainmenuController extends Controller
     }
 
     public function fetchTeamsMembersTbl(){
-        $rtmems = rtMembers_model::with(['createdByUser:id,name', 'teamRefTeams:id,team_name', 'member:id,name'])
-        ->select('id', 'team_id', 'member_id', 'created_by', 'status', 'created_at')
+        $rtmems = rtMembers_model::with(['createdByUser:id,name', 'updatedByUser:id,name', 'teamRefTeams:id,team_name', 'member:id,name'])
+        ->select('id', 'team_id', 'member_id', 'created_by', 'updated_by', 'created_at')
         ->orderBy('created_at', 'desc')
         ->paginate(2);
 
@@ -125,9 +125,9 @@ class mainmenuController extends Controller
 
     public  function fetchTeamsTbl(){
         $forteams = responseTeam_model::with(['createdByUser:id,name', 'updatedByUser:id,name'])
-        ->select('id', 'team_name', 'created_by', 'updated_by', 'created_at', 'updated_at')
-        ->orderBy('created_at', 'desc')
-        ->paginate(2);
+                    ->select('id', 'team_name', 'status', 'created_by', 'updated_by', 'created_at', 'updated_at')
+                    ->orderBy('created_at', 'desc')
+                    ->paginate(2);
 
         return view('partials.teams_table', compact('forteams'))->render();
     }
@@ -210,6 +210,11 @@ class mainmenuController extends Controller
     }
     //delete team END
 
+    public function fetchTeamsOptions(){
+        $teams = responseTeam_model::select('id', 'team_name')->get();
+        return response()->json(['teams' => $teams]);
+    }
+
     //for edit team
     public function getTeamID($id){
         $teamid = responseTeam_model::findOrFail($id);
@@ -220,6 +225,7 @@ class mainmenuController extends Controller
         try{
             $team = responseTeam_model::findOrFail($id);
             $team->team_name = $request->input('team_name');
+            $team->status = $request->input('status');
             $team->updated_by = Auth()->user()->id;
             $team->save();
         
@@ -230,10 +236,14 @@ class mainmenuController extends Controller
     }
     //for edit team
 
-
     public function getRTmemberID($id){
-        $rt_member = rtMembers_model::findOrFail($id);
-        return response()->json($rt_member);
+        try {
+            $rt_member = rtMembers_model::with(['createdByUser:id,name', 'teamRefTeams:id,team_name', 'member:id,name'])
+                         ->findOrFail($id);
+            return response()->json($rt_member);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to fetch RT member: ' . $e->getMessage()], 500);
+        }
     }
 /**-------------------------- ../Response Team ------------------------ */
 }

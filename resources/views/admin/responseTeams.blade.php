@@ -41,7 +41,7 @@
                     <div class="d-flex justify-content-end">
                             <!-- @can('Items-Write') -->
                             <div class="row">
-                                <button class="btn btn-primary btn-sm mb-2"data-bs-toggle="modal" data-bs-target="#add_rtmembers_modal">Assign Members</button>
+                                <button class="btn btn-primary btn-sm mb-2" id="assign-memBtn" data-bs-toggle="modal" data-bs-target="#add_rtmembers_modal">Assign Members</button>
                             </div>
                             <!-- @endcan -->
                         </div>
@@ -157,6 +157,12 @@
                             <input type="text" id="edit_team" name="edit_team" class="form-control" required />
                         </div>
                     </div>
+
+                    <select id="edit_team_status" name="edit_team_status" class="form-select select" required>
+                            <option value="available">Available</option>
+                            <option value="unavailable">Inactive</option>
+                            <option value="busy">Busy</option>
+                        </select>
                 </form>
 
             </div><!-- modal body end -->
@@ -169,14 +175,23 @@
     </div>
 </div><!-- ./ Edit Team Modal -->
 
-
 </div><!-- main container -->
 
-<!-- ----------------------- Add Response Team --------------------------- -->
+
 <script>
 document.addEventListener('DOMContentLoaded', function(){
+    
+/** ------------ Initialization of select2 on loading ------------ */
+    $('#members').select2({
+    dropdownParent: $('#add_rtmembers_modal')
+    });
 
-/** ---------------------- this is fetching table ------------ */
+    $('#team').select2({
+        dropdownParent: $('#add_rtmembers_modal')
+    });
+/** ------------ ./Initialization of select2 on loading ------------ */
+
+/** -------------------this is fetching table ----------------------- */
     // Function to fetch teams table
     function fetchTeamsTable(page) {
         $.ajax({
@@ -187,7 +202,7 @@ document.addEventListener('DOMContentLoaded', function(){
         });
     }
 
-    // Function to fetch response teams table
+    // Function to fetch members table
     function fetchResponseTeamsTable(page) {
         $.ajax({
             url: '/fetch-teamsmembers-tbl?page=' + page,
@@ -204,14 +219,45 @@ document.addEventListener('DOMContentLoaded', function(){
         fetchTeamsTable(tpage);
     });
 
-    // Pagination click event handler for response teams table
+    // Pagination click event handler for members table
     $(document).on('click', '#rtmems_pagination a', function(event) {
         event.preventDefault();
         let rtpage = $(this).attr('href').split('page=')[1];
         fetchResponseTeamsTable(rtpage);
     });
-/** ---------------------- this is fetching table ------------ */
+/** ------------------- ./this is fetching table ----------------------- */
 
+
+/** ------------------- fetch select2 teams options after edit team modal hide  ----------------------- */
+        $('#edit_t_modal').on('hidden.bs.modal', function (e) {
+            fetchTeamOptions(); // Fetch updated team options for Select2
+        });
+/** ------------------- ./fetch select2 teams options after edit team modal hide  ----------------------- */
+
+/** ------------------- dynamic population of select2 ------------------ */
+    function fetchTeamOptions() {
+        $.ajax({
+            url: '/fetch-teams-options', // Adjust URL as necessary
+            type: 'GET',
+            success: function(data) {
+                // Update options of the Select2 dropdown
+                let teamSelect = $('#team');
+                teamSelect.empty(); // Clear existing options
+                $.each(data.teams, function(key, value) {
+                    teamSelect.append('<option value="' + value.id + '">' + value.team_name + '</option>');
+                });
+                teamSelect.trigger('change'); // Notify Select2 of changes
+            },
+            error: function(xhr, status, error) {
+                // Handle error
+                console.error(xhr.responseText);
+                alert('Failed to fetch teams. Please try again.');
+            }
+        });
+    }
+/** ------------------- ./dynamic population of select2 ------------------ */
+
+/** ------------------- add team ------------------ */
         $('#add-t-submitBtn').click(function(e) {
         e.preventDefault();
 
@@ -266,19 +312,127 @@ document.addEventListener('DOMContentLoaded', function(){
         
         })
     });
+/** --------------------- ./add team --------------------- */
 
+/** --------------------------- Delete Team ---------------------------- */
+$(document).on('click', '#del-team-btn', function(){
+    let delteamId = $(this).data('id');
 
-       //initialize select2
-       $('#members').select2({
-        dropdownParent: $('#add_rtmembers_modal')
+  // Confirm before deleting
+  if (confirm('Are you sure you want to DELETE this team?')) {
+        $.ajax({
+            url: '/delete-teams/' + delteamId, // Adjust the URL as necessary
+            type: 'DELETE', // Use DELETE method
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') // CSRF token for Laravel
+            },
+            success: function(result) {
+                // Remove the incident row from the table if deletion was successful
+                if (result.success) {
+                    $('button[data-id="' + delteamId + '"]').closest('tr').remove();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: result.success,
+                        showConfirmButton: false,
+                        timer:1500,
+                    });
+
+                    fetchTeamsTable();
+                } else {
+                    alert('Something went wrong. Please try again.');
+                }
+            }
+        });
+    }
+});
+/** --------------------------- ./Delete Team ---------------------------- */
+
+/**-------------------EDit Team ------------------------------------ */
+$(document).on('click', '.edit-team-btn', function() {
+    var teamid = $(this).data('id'); // Get the ID of the team to edit
+
+    // Fetch the team details from the server
+    $.ajax({
+        url: '/get-team/' + teamid, // Adjust the URL as necessary
+        type: 'GET', // Use GET method
+        success: function(data) {
+            // Populate the form fields with the team details
+            $('#edit_team').val(data.team_name);
+            $('#edit_team_status').val(data.status);
+            $('#edit_t_form').attr('data-id', teamid); // Set the data-id attribute of the form
+            $('#edit_t_modal').modal('show');
+        },
+        error: function(xhr, status, error) {
+            // Handle error
+            console.error(xhr.responseText);
+            alert('Failed to fetch team details. Please try again.');
+        }
     });
+});
 
-    $('#team').select2({
-        dropdownParent: $('#add_rtmembers_modal')
+// Function to handle submission of edited team details
+$('#edit-t-submitBtn').click(function(e) {
+    e.preventDefault();
+    
+    var teamId = $('#edit_t_form').attr('data-id'); // Retrieve the ID stored in the form
+    var status = $('#edit_team_status').val();
+    var teamname = $('#edit_team').val();
+
+    console.log(teamId, status, teamname);
+    $.ajax({
+        url: '/update-team/' + teamId,
+        type: 'POST',
+        data: {
+            'team_name': teamname,
+            'status': status,
+            '_token': $('meta[name="csrf-token"]').attr('content'),// CSRF token
+        },
+        
+        success: function(response) {
+            if(response.success) {
+                console.log('Success:', response.success);
+                // Optionally close the modal and refresh the table or part of the page that displays teams
+                $('#edit_t_modal').modal('hide');
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: response.success,
+                    showConfirmButton: false,
+                    timer:1500,
+                });
+                fetchTeamsTable(); // Update the teams table after editing
+                fetchResponseTeamsTable();
+            }else{
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: response.error,
+                    showConfirmButton: false,
+                    timer:1500,
+                });
+            }
+        },
+        error: function(xhr, status, error) {
+            // Handle error
+            console.error(xhr.responseText);
+            alert('Failed to update team. Please try again.');
+        }
     });
+});
+/**------------------- ./EDit Team ------------------------------------ */
 
-    $('#add-rtmem-submitBtn').click(function(e) {
+/** ----------------------- Add team members --------------------------- */
+$('#add_rtmembers_modal').on('shown.bs.modal', function (e) {
+    // Clear selected options in the #team Select2 dropdown
+    $('#team').val([]).trigger('change');
+    $('#members').val([]).trigger('change');
+});
+
+//assign members
+$('#add-rtmem-submitBtn').click(function(e) {
         e.preventDefault();
+
         let selectedTeamId = $('#team').val();
         let selectedMemberIds = $('#members').val(); // This will be an array of selected member IDs
 
@@ -325,10 +479,9 @@ document.addEventListener('DOMContentLoaded', function(){
         
         })
     });
+/** ----------------------- ./Add team members --------------------------- */
 
-
-
-//delete teams with members
+/** ----------------------- Delete team members --------------------------- */
 $(document).on('click', '#del-teammem', function(){
     let memid = $(this).data('id');
 
@@ -360,108 +513,11 @@ $(document).on('click', '#del-teammem', function(){
         });
     }
 });
+/** ----------------------- ./Delete team members --------------------------- */
 
-//delete teams
-$(document).on('click', '#del-team-btn', function(){
-    let delteamId = $(this).data('id');
+/** ----------------------- Edit team members --------------------------- */
+/** ----------------------- ./Edit team members --------------------------------- */
 
-  // Confirm before deleting
-  if (confirm('Are you sure you want to DELETE this team?')) {
-        $.ajax({
-            url: '/delete-teams/' + delteamId, // Adjust the URL as necessary
-            type: 'DELETE', // Use DELETE method
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') // CSRF token for Laravel
-            },
-            success: function(result) {
-                // Remove the incident row from the table if deletion was successful
-                if (result.success) {
-                    $('button[data-id="' + delteamId + '"]').closest('tr').remove();
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success',
-                        text: result.success,
-                        showConfirmButton: false,
-                        timer:1500,
-                    });
-
-                    fetchTeamsTable();
-                } else {
-                    alert('Something went wrong. Please try again.');
-                }
-            }
-        });
-    }
-});
-
-
-//edit teams
-$(document).on('click', '.edit-team-btn', function() {
-    var teamid = $(this).data('id'); // Get the ID of the team to edit
-
-    // Fetch the team details from the server
-    $.ajax({
-        url: '/get-team/' + teamid, // Adjust the URL as necessary
-        type: 'GET', // Use GET method
-        success: function(data) {
-            // Populate the form fields with the team details
-            $('#edit_team').val(data.team_name); // Assuming 'team_name' is the field name returned from the server
-            $('#edit_t_form').attr('data-id', teamid); // Store the ID in the form for later use
-
-            // Trigger the modal to show up
-            $('#edit_t_modal').modal('show');
-        },
-        error: function(xhr, status, error) {
-            // Handle error
-            console.error(xhr.responseText);
-            alert('Failed to fetch team details. Please try again.');
-        }
-    });
-});
-
-// Function to handle submission of edited team details
-$('#edit-t-submitBtn').click(function(e) {
-    e.preventDefault();
-    var teamid = $('#edit_t_form').attr('data-id'); // Retrieve the ID stored in the form
-    var teamname = $('#edit_team').val();
-
-    $.ajax({
-        url: '/update-team/' + teamid,
-        type: 'POST',
-        data: {
-            'team_name': teamname,
-            '_token': $('meta[name="csrf-token"]').attr('content') // CSRF token
-        },
-        success: function(response) {
-            if(response.success) {
-                console.log('Success:', response.success);
-                // Optionally close the modal and refresh the table or part of the page that displays teams
-                $('#edit_t_modal').modal('hide');
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success',
-                    text: response.success,
-                    showConfirmButton: false,
-                    timer:1500,
-                });
-                fetchTeamsTable(); // Update the teams table after editing
-            }else{
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: response.error,
-                    showConfirmButton: false,
-                    timer:1500,
-                });
-            }
-        },
-        error: function(xhr, status, error) {
-            // Handle error
-            console.error(xhr.responseText);
-            alert('Failed to update team. Please try again.');
-        }
-    });
-});
 });//DOMContentLoaded
 </script>
 <!-- ----------------------- Add team --------------------------- -->

@@ -15,7 +15,6 @@ class rtMembers_model extends Model
         'id',
         'team_id',
         'member_id',
-        'status',
         'created_by',
         'updated_by',
         'created_at',
