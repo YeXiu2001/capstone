@@ -45,7 +45,9 @@ Route::post('/update-incident-type/{id}', [mainmenuController::class, 'updateInc
 
 
 Route::get('/reports', [mainmenuController::class, 'reports_view']);
-
+Route::get('/fetch-incidents-map', [mainmenuController::class, 'fetchIncidentsforMap']);
+Route::get('/fetch-incidents-kboard', [mainmenuController::class, 'fetchIncidentsKboard']);
+Route::post('/kanban-report-deploy', [mainmenuController::class, 'updateReportKanban']);
 
 Route::get('/responseTeams', [mainmenuController::class, 'teams_view']);
 Route::post('/add-rteams', [mainmenuController::class, 'add_rteams']);
@@ -59,6 +61,10 @@ Route::post('/update-team/{id}', [mainmenuController::class, 'updateTeam']);
 Route::get('/fetch-teams-options', [mainmenuController::class, 'fetchTeamsOptions']);
 
 Route::get('/get-rtmember/{id}', [mainmenuController::class, 'getRTmemberID']);
+
+
+Route::get('/routing', [mainmenuController::class, 'routing_view']);
+
 /** --------------------------../Admin Controller ----------------------- */
 Route::resources([
     '/roles' => RoleController::class,

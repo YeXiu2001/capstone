@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\incident_reports;
 use Illuminate\Http\Request;
 use App\Models\IncidentTypes;
 use App\Models\User;
@@ -91,11 +92,59 @@ class mainmenuController extends Controller
     }
     /** ------------------------ ./ Incident Types --------------------------- */
 
-    /**-------------------------- Response Team ------------------------ */
+/** ------------------- Reports ---------------------------------- */
     public function reports_view(){
-        return view('admin.reports');
+        $kanbanIncidents = incident_reports::with('modelref_incidenttype')
+                            ->orderBy('created_at', 'asc')
+                            ->get();
+
+        return view('admin.reports', compact('kanbanIncidents'));
     }
 
+    public function fetchIncidentsforMap()
+    {
+        $incidentsForMap = incident_reports::with(['modelref_incidenttype'])->get([
+            'lat', 'long', 'eventdesc', 'imagedir', 'incident'
+        ]);
+    
+        // Adjusting image URL
+        $incidentsForMap->transform(function ($incident) {
+            if (!empty($incident->imagedir)) {
+                $incident->image_url = asset('images/' . $incident->imagedir); // Using asset() helper to get the full URL
+            }
+            $incident->case_type = $incident->modelref_incidenttype->cases ?? 'N/A'; // Fallback if relationship is missing
+            return $incident;
+        });
+    
+        return response()->json($incidentsForMap);
+    }
+
+    public function fetchIncidentsKboard(){
+        $kanbanIncidents = incident_reports::with('modelref_incidenttype')
+                            ->get();
+
+    return response()->json($kanbanIncidents);
+    }
+
+    public function updateReportKanban(Request $request){
+        
+        $reportId = $request->reportId;
+        $newStatus = $request->status;
+    
+        $report = incident_reports::find($reportId);
+        if ($report) {
+            $report->status = $newStatus;
+            $report->save();
+            return response()->json(['message' => 'Report status updated successfully.']);
+        }
+    
+        return response()->json(['message' => 'Report not found.'], 404);
+    }
+/** ---------------------- ./ Reports ---------------------------------- */
+
+
+
+    /**-------------------------- Response Team ------------------------ */
     public function teams_view(){
         $users = User::select('id', 'name')->get();
         $teams = responseTeam_model::select('id', 'team_name')->get();
@@ -246,4 +295,11 @@ class mainmenuController extends Controller
         }
     }
 /**-------------------------- ../Response Team ------------------------ */
+
+
+/** ------------------------ Routing -------------------------------- */
+public function routingView(){
+    return view('admin.routing');
+}
+/** ----------------------- ./Routing ------------------------------- */
 }

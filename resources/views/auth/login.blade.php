@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en">
-
+<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     @include('layouts.components.head')
 
     <body class="auth-body-bg">

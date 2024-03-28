@@ -16,6 +16,11 @@
 
 <!-- driverjs -->
 <script src="{{url('assets/libs/driver.js/dist/driver.js.iife.js') }}"></script>
+
+<!-- dragula plugins -->
+<!-- <script src="{{ url('assets/libs/dragula/dragula.min.js') }}"></script> -->
+<!-- <script src="{{ url('assets/js/pages/task-kanban.init.js') }}"></script> -->
+<!-- <script src="{{ url('assets/js/pages/task-form.init.js') }}"></script> -->
 <!-- App js -->
 <script src="{{url('assets/js/app.js')}}"></script>
 

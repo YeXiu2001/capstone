@@ -22,13 +22,9 @@ return new class extends Migration
             $table->string('eventdesc')->nullable();
             $table->string('imagedir')->nullable();
             $table->enum('status', ['pending', 'ongoing', 'resolved', 'dismissed'])->default('pending');
-            $table->unsignedBigInteger('admin_handler')->nullable();
-            $table->unsignedBigInteger('deployed_rt')->nullable();
             $table->timestamps();
 
             $table->foreign('incident')->references('id')->on('case_types');
-            $table->foreign('admin_handler')->references('id')->on('users');
-            $table->foreign('deployed_rt')->references('id')->on('response_teams');
         });
     }
 

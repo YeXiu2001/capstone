@@ -151,23 +151,9 @@ var geoOptions = {
         color: "#0000FF",
     },
 };
-//OSM wikidata Q285488
-var ic_admin = L.geoJson(lineJSON, geoOptions).addTo(map);
-
-//shapefile
-var barangays = L.geoJson(ic_full_admin, geoOptions).addTo(map);
-
-//declare overlays
-//initialize overlays
-var overlays = {
-    "Iligan Admin Boundary": ic_admin,
-    "Barangays": barangays,
-    // "labels": labels,
-    // 'streets': streets
-}
 
 //map layers/ control layer of basemaps and overlays
-var maplayers = L.control.layers(basemaps,overlays).addTo(map);
+var maplayers = L.control.layers(basemaps).addTo(map);
 //search Control plugin https://github.com/perliedman/leaflet-control-geocoder
 L.Control.geocoder().addTo(map);
 //leaflet-locate plugin https://github.com/domoritz/leaflet-locatecontrol
@@ -231,51 +217,60 @@ fetch(geoapifyUrl)
     $('#myloc_report_modal').on('hidden.bs.modal', function () {
         map.stop();
     });
-  });
 
 
-  document.getElementById('addIncidentReportForm').addEventListener('submit', function(e){
-        e.preventDefault(); // Prevent default form submission
+/*------------------adding incident report------------------------*/
+$('#addIncidentReportForm').submit(function(e) {
+    e.preventDefault();
 
-        var formData = new FormData(this);
+    // Initialize a new FormData object
+    let formData = new FormData(this);
 
-        for (let [key, value] of formData.entries()) {
-            console.log(key, value);
-        }
-        fetch('/add-incident-report',{
-            method: 'POST',
-            body: formData,
-
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log(data); // Handle success
+    // AJAX request setup
+    $.ajax({
+        type: 'POST',
+        url: '/add-incident-report',
+        data: formData,
+        contentType: false,
+        processData: false,
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        success: function(response) {
+            console.log(response); // Assuming response is a JSON object
+            if (response.success) {
+                console.log('Success:', response.success);
+                $('#myloc_report_modal').modal('hide');
+                $('#addIncidentReportForm').trigger('reset');
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: response.success,
+                    showConfirmButton: false,
+                    timer: 1500,
+                });
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('An error occurred:', error.toString());
+            let errorMessage = 'An error occurred while processing your request. Please try again later.';
+            if (xhr.responseJSON && xhr.responseJSON.error) {
+                errorMessage = xhr.responseJSON.error;
+            }
             $('#myloc_report_modal').modal('hide');
             $('#addIncidentReportForm').trigger('reset');
             Swal.fire({
-                        icon: 'success',
-                        title: 'Success',
-                        text: 'Reported Successfully',
-                        showConfirmButton: false,
-                        timer:1500,
-                    });
-                    map.stop();
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            $('#myloc_report_modal').modal('hide');
-            $('#addIncidentReportForm').trigger('reset');
-            Swal.fire({
-              icon: 'error',
-              title: 'Error',
-              text: 'Reporting Failed',
-              showConfirmButton: false,
-              timer:1500,
+                icon: 'error',
+                title: 'Error',
+                text: errorMessage,
             });
+        }
+    });
+});
 
-            map.stop();
-        });
-  });
+
+});
+
     </script>
 <!-- Report on my Location -->
 

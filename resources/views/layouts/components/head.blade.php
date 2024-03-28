@@ -19,6 +19,8 @@
     <link type="text/css" rel="stylesheet" href="{{url('assets/libs/driver.js/dist/driver.css') }}" />
     <!-- App Css-->
     <link href="{{url('assets/css/app.min.css')}}" rel="stylesheet" type="text/css" />
+
+    <link href="{{ url('assets/libs/dragula/dragula.min.css') }}" rel="stylesheet" type="text/css" />
     <!-- App js -->
     <!-- <script src="{{url('assets/js/plugin.js')}}"></script> -->
 
@@ -27,5 +29,5 @@
     <link rel="stylesheet" href="assets/libs/owl.carousel/assets/owl.theme.default.min.css">
 
     <script src="{{url('assets/libs/jquery/jquery.min.js')}}"></script>
-    <script src="{{ url('assets/libs/jquery.repeater/jquery.repeater.min.js') }}"></script>
+    <script src="{{url('assets/libs/jquery.repeater/jquery.repeater.min.js') }}"></script>
 </head>

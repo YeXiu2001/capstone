@@ -22,21 +22,18 @@ class incident_reports extends Model
         'eventdesc',
         'imagedir',
         'status',
-        'admin_handler',
-        'deployed_rt',
         'created_at',
         'updated_at',
     ];
 
-    public function handlerUser(){
-        return $this->belongsTo(User::class, 'admin_handler');
-    }
-
-    public function deployedUser(){
-        return $this->belongsTo(User::class, 'deployed_rt');
-    }
-
     public function modelref_incidenttype(){
         return $this->belongsTo(IncidentTypes::class, 'incident');
     }
+
+    CONST INCIDENT_STATUS = [
+        'pending' => 'Pending',
+        'ongoing' => 'Ongoing',
+        'resolved' => 'Resolved',
+        'dismissed' => 'Dismissed'
+    ];
 }

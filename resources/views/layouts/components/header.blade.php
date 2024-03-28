@@ -32,10 +32,10 @@
         <div class="d-flex">
 
             <div class="dropdown d-inline-block d-lg-none ms-2">
-                <button type="button" class="btn header-item noti-icon waves-effect" id="page-header-search-dropdown"
+                <!-- <button type="button" class="btn header-item noti-icon waves-effect" id="page-header-search-dropdown"
                 data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     <i class="mdi mdi-magnify"></i>
-                </button>
+                </button> -->
                 <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end p-0"
                     aria-labelledby="page-header-search-dropdown">
 
