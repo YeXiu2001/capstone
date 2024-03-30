@@ -36,4 +36,9 @@ class incident_reports extends Model
         'resolved' => 'Resolved',
         'dismissed' => 'Dismissed'
     ];
+
+    public function deployments(){
+        return $this->hasMany(IncidentDeploymentModel::class, 'incident_id');
+    }
+    
 }

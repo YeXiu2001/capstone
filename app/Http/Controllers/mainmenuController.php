@@ -8,6 +8,7 @@ use App\Models\IncidentTypes;
 use App\Models\User;
 use App\Models\responseTeam_model;
 use App\Models\rtMembers_model;
+use App\Models\IncidentDeploymentModel;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
 
@@ -94,17 +95,53 @@ class mainmenuController extends Controller
 
 /** ------------------- Reports ---------------------------------- */
     public function reports_view(){
-        $kanbanIncidents = incident_reports::with('modelref_incidenttype')
+        $incident_types = IncidentTypes::select('id', 'cases')->get();
+        $available_RTeams = responseTeam_model::select('id', 'team_name')
+                            ->where('status', 'available')
+                            ->get();
+        $rteams = responseTeam_model::select('id', 'team_name', 'status')
+                    ->orderBy('status', 'asc')
+                    ->paginate(5);
+        // Adjusting this query to eagerly load related deployment, team, and admin
+        $kanbanIncidents = incident_reports::with(['modelref_incidenttype', 'deployments.deployedRteam', 'deployments.deployedBy'])
                             ->orderBy('created_at', 'asc')
                             ->get();
 
-        return view('admin.reports', compact('kanbanIncidents'));
+        return view('admin.reports', compact('kanbanIncidents', 'incident_types', 'available_RTeams', 'rteams'));
     }
+
+    public function  getAvailableTeams(){
+        $available_RTeams = responseTeam_model::select('id', 'team_name')
+                            ->where('status', 'available')
+                            ->get();
+        return response()->json(['available_RTeams' => $available_RTeams]);
+    }
+    public function getDeploymentDetails(Request $request)
+{
+    $reportId = $request->reportId;
+    $teamIds = $request->teamIds; // Assuming this comes as an array
+
+    $deployments = IncidentDeploymentModel::with(['deployedRteam', 'deployedBy'])
+        ->whereIn('deployed_rteam', $teamIds)
+        ->where('incident_id', $reportId)
+        ->get();
+
+    $deployedTeams = $deployments->map(function ($deployment) {
+        return $deployment->deployedRteam->team_name;
+    })->unique();
+
+    $deployedBy = optional($deployments->first())->deployedBy->name ?? 'N/A';
+
+    return response()->json([
+        'deployedTeams' => $deployedTeams,
+        'deployedBy' => $deployedBy,
+    ]);
+}
 
     public function fetchIncidentsforMap()
     {
-        $incidentsForMap = incident_reports::with(['modelref_incidenttype'])->get([
-            'lat', 'long', 'eventdesc', 'imagedir', 'incident'
+        $incidentsForMap = incident_reports::with(['modelref_incidenttype'])
+        ->get(['id', 'reporter', 'contact','lat', 'long', 'eventdesc', 'imagedir', 'incident'
         ]);
     
         // Adjusting image URL
@@ -119,26 +156,102 @@ class mainmenuController extends Controller
         return response()->json($incidentsForMap);
     }
 
-    public function fetchIncidentsKboard(){
-        $kanbanIncidents = incident_reports::with('modelref_incidenttype')
-                            ->get();
-
-    return response()->json($kanbanIncidents);
-    }
-
     public function updateReportKanban(Request $request){
+        $report = incident_reports::find($request->reportId);
+        if (!$report) {
+            return response()->json(['message' => 'Report not found.'], 404);
+        }
+        $report->status = $request->newStatus;
+        $report->save();
         
-        $reportId = $request->reportId;
-        $newStatus = $request->status;
-    
-        $report = incident_reports::find($reportId);
-        if ($report) {
-            $report->status = $newStatus;
-            $report->save();
-            return response()->json(['message' => 'Report status updated successfully.']);
+        $incidentId = $request->reportId;
+        $deployed_rteams = $request->input('deployedRteam');
+        
+        if (!$deployed_rteams || !is_array($deployed_rteams)) {
+            return response()->json(['error' => 'No Response Teams Provided'], 422);
         }
     
-        return response()->json(['message' => 'Report not found.'], 404);
+        $deployedTeamNames = [];
+        try {
+            foreach ($deployed_rteams as $deployed_rteamId) {
+                // Deploy each response team
+                IncidentDeploymentModel::create([
+                    'incident_id' => $incidentId,
+                    'deployed_rteam' => $deployed_rteamId,
+                    'deployed_by' => auth()->user()->id,
+                ]);
+                
+                // Update response team status to 'busy'
+                $responseTeam = responseTeam_model::find($deployed_rteamId);
+                if ($responseTeam) {
+                    $responseTeam->status = 'busy';
+                    $responseTeam->save();
+                    $deployedTeamNames[] = $responseTeam->team_name;
+                }
+            }
+    
+            // Get the name of the user who deployed the team
+            $deployedByUser = auth()->user()->name;
+    
+            return response()->json([
+                'success' => 'Deployed successfully.',
+                'deployedTeams' => $deployedTeamNames,
+                'deployedBy' => $deployedByUser
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to Deploy: ' . $e->getMessage()], 500);
+        }
+    }
+    
+    public function ongoingToResolved(Request $request){
+        $report = incident_reports::find($request->reportId);
+        if (!$report) {
+            return response()->json(['message' => 'Report not found.'], 404);
+        }
+        $report->status = $request->newStatus;
+        $report->save();
+    }
+    
+    
+
+    public function getPreportDetails($id){
+        $report = incident_reports::find($id);
+
+        if ($report) {
+            return response()->json($report);
+        } else {
+            return response()->json(['error' => 'Report not found.'], 404);
+        }
+    }
+
+    public function updatePReportDetails(Request $request, $id)
+    {
+        $report = incident_reports::find($id);
+        if (!$report) {
+            return response()->json(['message' => 'Report not found.'], 404);
+        }
+    
+        // Validate the request data
+        $validated = $request->validate([
+            'address' => 'required|string',
+            'eventdesc' => 'required|string',
+            'incident' => 'required|exists:case_types,id', // Ensure the incident exists
+        ]);
+    
+        // Update the report with validated data
+        $report->address = $validated['address'];
+        $report->eventdesc = $validated['eventdesc'];
+        $report->incident = $validated['incident']; // Assuming 'incident' is the ID of the incident type
+        $report->save();
+    
+        return response()->json(['message' => 'Report updated successfully.']);
+    }
+    
+    public function teamstblReports(){
+        $rteams = responseTeam_model::select('id', 'team_name', 'status')
+                    ->orderBy('status', 'asc')
+                    ->paginate(5);
+        return view('partials.reports_teamtbl', compact('rteams'))->render();
     }
 /** ---------------------- ./ Reports ---------------------------------- */
 

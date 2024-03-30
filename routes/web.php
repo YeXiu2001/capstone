@@ -43,11 +43,17 @@ Route::delete('/delete-incident/{id}', [mainmenuController::class, 'deleteIncide
 Route::get('/get-incident-type/{id}', [mainmenuController::class, 'getIncidentType']);
 Route::post('/update-incident-type/{id}', [mainmenuController::class, 'updateIncidentType']);
 
-
+/** --------------------------Reports Tab----------------------- */
 Route::get('/reports', [mainmenuController::class, 'reports_view']);
 Route::get('/fetch-incidents-map', [mainmenuController::class, 'fetchIncidentsforMap']);
-Route::get('/fetch-incidents-kboard', [mainmenuController::class, 'fetchIncidentsKboard']);
 Route::post('/kanban-report-deploy', [mainmenuController::class, 'updateReportKanban']);
+Route::post('/kanban-report-resolve', [mainmenuController::class, 'ongoingToResolved']);
+Route::get('/get-preport-details/{id}', [mainmenuController::class, 'getPReportDetails']);
+Route::post('/update-preport-details/{id}', [mainmenuController::class, 'updatePReportDetails']);
+Route::get('/reports-teamtbl', [mainmenuController::class, 'teamstblReports']);
+Route::get('/get-available-teams', [mainmenuController::class, 'getAvailableTeams']);
+Route::get('/get-deployment-details', [mainmenuController::class, 'getDeploymentDetails']);
+/** --------------------------../Reports Tab----------------------- */
 
 Route::get('/responseTeams', [mainmenuController::class, 'teams_view']);
 Route::post('/add-rteams', [mainmenuController::class, 'add_rteams']);
