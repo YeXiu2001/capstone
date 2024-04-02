@@ -36,7 +36,7 @@
                             <div class="col-12">
                                 <div class="card overflow-hidden">
                                     
-                                    <div class="card-body pt-3">
+                                    <div class="card-body">
                                         <div class="row">
                                            
 

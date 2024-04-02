@@ -253,6 +253,18 @@ class mainmenuController extends Controller
                     ->paginate(5);
         return view('partials.reports_teamtbl', compact('rteams'))->render();
     }
+
+    public function dismissReportKanban(Request $request){
+        $report = incident_reports::find($request->reportId);
+        if (!$report) {
+            return response()->json(['message' => 'Report not found.'], 404);
+        }
+        $report->status = $request->newStatus;
+        $report->save();
+    
+        return response()->json(['message' => 'Report dismissed successfully.']);
+    }
+    
 /** ---------------------- ./ Reports ---------------------------------- */
 
 

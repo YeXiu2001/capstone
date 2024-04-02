@@ -29,4 +29,9 @@ class IncidentTypes extends Model
     public function updatedByUser(){
         return $this->belongsTo(User::class, 'updated_by');
     }
+
+    public function incidents()
+    {
+        return $this->hasMany(incident_reports::class, 'incident');
+    }
 }

@@ -41,7 +41,7 @@
             <!-- Response Team Start -->
             <li class="menu-title" key="t-menu">Response Team Menu</li>
                 <li>
-                    <a href="#" class="waves-effect">
+                    <a href="/routing" class="waves-effect">
                         <i class="bx bxs-compass"></i>
                         <span key="t-chat">Routing</span>
                     </a>

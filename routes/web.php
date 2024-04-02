@@ -6,6 +6,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CitizenController;
 use App\Http\Controllers\mainmenuController;
+use App\Http\Controllers\RoutingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -43,6 +44,7 @@ Route::delete('/delete-incident/{id}', [mainmenuController::class, 'deleteIncide
 Route::get('/get-incident-type/{id}', [mainmenuController::class, 'getIncidentType']);
 Route::post('/update-incident-type/{id}', [mainmenuController::class, 'updateIncidentType']);
 
+
 /** --------------------------Reports Tab----------------------- */
 Route::get('/reports', [mainmenuController::class, 'reports_view']);
 Route::get('/fetch-incidents-map', [mainmenuController::class, 'fetchIncidentsforMap']);
@@ -53,6 +55,7 @@ Route::post('/update-preport-details/{id}', [mainmenuController::class, 'updateP
 Route::get('/reports-teamtbl', [mainmenuController::class, 'teamstblReports']);
 Route::get('/get-available-teams', [mainmenuController::class, 'getAvailableTeams']);
 Route::get('/get-deployment-details', [mainmenuController::class, 'getDeploymentDetails']);
+Route::post('/dismiss-report', [mainmenuController::class, 'dismissReportkanban']);
 /** --------------------------../Reports Tab----------------------- */
 
 Route::get('/responseTeams', [mainmenuController::class, 'teams_view']);
@@ -69,7 +72,8 @@ Route::get('/fetch-teams-options', [mainmenuController::class, 'fetchTeamsOption
 Route::get('/get-rtmember/{id}', [mainmenuController::class, 'getRTmemberID']);
 
 
-Route::get('/routing', [mainmenuController::class, 'routing_view']);
+Route::get('/routing', [RoutingController::class, 'routingView']);
+ROute::get('/incidents-assigned', [RoutingController::class, 'getAssignedIncidents']);
 
 /** --------------------------../Admin Controller ----------------------- */
 Route::resources([

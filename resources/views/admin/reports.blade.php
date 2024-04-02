@@ -55,7 +55,7 @@
                                                 <a class="dropdown-item view-in-map" href="#" data-report-id="{{$reports->id}}">View in Map</a>
                                                     <!-- <a class="dropdown-item">View Complete Details</a> -->
                                                     <a class="dropdown-item edittask-details edit-preport-details" href="#" data-report-id="{{$reports->id}}" data-bs-toggle="modal" data-bs-target="edit_preport_modal ">Edit</a>
-                                                    <a class="dropdown-item deletetask" href="#">Delete</a>
+                                                    <a class="dropdown-item dismiss-rep" data-report-id="{{$reports->id}}">Dismiss Report</a>
                                                 </div>
                                             </div>
                                         <div class="float-end ms-2">
@@ -107,7 +107,6 @@
                                                 </a>
                                                 <div class="dropdown-menu dropdown-menu-end">
                                                 <a class="dropdown-item view-in-map" href="#" data-report-id="{{$reports->id}}">View in Map</a>
-                                                    <a class="dropdown-item deletetask" href="#">Dismiss</a>
                                                 </div>
                                             </div>
                                         <div class="float-end ms-2">
@@ -371,9 +370,6 @@
 </script>
 <!-- ./Map Implementation -->
 
-
-
-
 <!-- Kanban script -->
 <script>
     $(document).ready(function() {
@@ -416,13 +412,15 @@
     // Maps Event END
 
     // Dragula Initialization and handle invalid moves
-    dragula([document.getElementById("pending-reports"), document.getElementById("ongoing-reports"), document.getElementById("resolved-reports")])
-        .on('drag', function(el, source) {
-            // Store the source container ID to check during the drop
-            el.dataset.sourceId = source.id;
-            // Optionally, you can also store the next sibling of the dragged element for reference if the move is invalid
-            el.dataset.nextSiblingId = el.nextElementSibling ? el.nextElementSibling.getAttribute('id') : null;
-        })
+        // Dragula Initialization and handle invalid moves
+        dragula([document.getElementById("pending-reports"), document.getElementById("ongoing-reports"), document.getElementById("resolved-reports")])
+                .on('drag', function(el, source) {
+                    // Store the source container ID to check during the drop
+                    el.dataset.sourceId = source.id;
+                    // Optionally, you can also store the next sibling of the dragged element for reference if the move is invalid
+                    el.dataset.nextSiblingId = el.nextElementSibling ? el.nextElementSibling.getAttribute('id') : null;
+                })
+
         .on('drop', function(el, target, source, sibling) {
             var reportId = el.getAttribute('data-report-id');
             var sourceId = el.dataset.sourceId; // Retrieve the source container ID
@@ -448,9 +446,8 @@
             }
 
                 if (targetId === 'ongoing-reports') {
-                    $('#select_rteam_modal').data('report-id', reportId).modal('show');
                     // Handle logic for moving to 'Ongoing'
-                    handleMoveToOngoing(reportId);
+                    handleMoveToOngoing(reportId, el);
                 } else if (targetId === 'resolved-reports') {
                     // Handle logic for moving to 'Resolved'
                     handleMoveToResolved(reportId);
@@ -459,7 +456,7 @@
             });
         // Dragula Initialization and handle invalid moves END
 
-
+            
     function checkValidMove(sourceId, targetId) {
         // Define valid transitions
         const transitions = {
@@ -471,19 +468,31 @@
         return transitions[sourceId] === targetId;
     }
 
-    function handleMoveToOngoing(reportId) {
-        // Logic for handling move to 'Ongoing', already implemented in your script
+    function revertReportCardToPending(reportId, el) {
+        var reportCard = $(`div[data-report-id="${reportId}"]`);
+        reportCard.removeAttr('id').attr('id', `pending-rep-${reportId}`);
+        $('#pending-reports').append(reportCard);
+        // Reset any ongoing-specific attributes or classes as necessary
+    }
+
+    function handleMoveToOngoing(reportId, el) {
         console.log(`Preparing to move report ${reportId} to Ongoing.`);
+        $('#select_rteam_modal').data('report-id', reportId).modal('show');
+
+        $('#select_rteam_modal').off('hide.bs.modal').on('hide.bs.modal', function () {
+            if (!$('#select_rteam_modal').data('deploymentCompleted')) {
+                revertReportCardToPending(reportId, el);
+            }
+        });
 
         // Handle when a report is moved to 'Ongoing'
     $('#assign-rteam').select2({ dropdownParent: $('#select_rteam_modal') });
 
     // Handle the report status update and team deployment
-    $('#select_rteam_form').submit(function(e) {
+    $('#select_rteam_form').off('submit').on('submit', function(e) {
         e.preventDefault();
-        var reportId = $('#select_rteam_modal').data('report-id');
         var selectedRteams = $('#assign-rteam').val();
-
+        $('#select_rteam_modal').data('deploymentCompleted', true);
         $.ajax({
             url: '/kanban-report-deploy',
             type: 'POST',
@@ -513,7 +522,6 @@
                     </a>
                     <div class="dropdown-menu dropdown-menu-end">
                         <a class="dropdown-item view-in-map" href="#" data-report-id="${reportId}">View in Map</a>
-                        <a class="dropdown-item deletetask" href="#">Dismiss</a>
                     </div>
                 </div>
             `;
@@ -546,6 +554,8 @@
                 fetchTeamTbl();
                 // Close the modal
                 $('#select_rteam_modal').modal('hide');
+
+                console.log('Report ID that is successfully updated is:' + reportId);
             },
             error: function(error) {
                 console.error('Error:', error);
@@ -554,6 +564,8 @@
     });
     // Handle the Pending to ongoin and team deployment END
     }
+
+    
     
     // handle ongoing to resolved
     function handleMoveToResolved(reportId) {
@@ -654,8 +666,47 @@
         })
         .catch(error => console.log('Error fetching incidents:', error));
     }
-    });
 
+
+        $(document).on('click', '.dismiss-rep', function() {
+        var reportId = $(this).attr('data-report-id'); // Make sure this is correctly fetching the updated ID
+        swal.fire({
+            title: 'Are you sure?',
+            text: 'You will not be able to recover this report!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, Dismiss it!',
+            cancelButtonText: 'No, keep it',
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '/dismiss-report',
+                    type: 'POST',
+                    data: {
+                        _token: $('meta[name="csrf-token"]').attr('content'),
+                        reportId: reportId, // Use the fetched report ID
+                        newStatus: 'dismissed',
+                    },
+                    success: function(response) {
+                        console.log(`The recently updated report to ongoing is: ${reportId}`);
+                        $(`div[data-report-id="${reportId}"]`).remove();
+                        swal.fire({
+                            icon: 'success',
+                            title: 'Report dismissed successfully',
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+                    },
+                    error: function(error) {
+                        console.error('Error:', error);
+                    }
+                });
+            }
+        });
+    });
+    }); //DOM
 </script>
 <!-- kanban end -->
 

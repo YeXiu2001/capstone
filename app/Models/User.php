@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use App\Models\rtMembers_model;
 
 class User extends Authenticatable
 {
@@ -45,4 +46,9 @@ class User extends Authenticatable
         'contact_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    public function rtMembers()
+    {
+        return $this->hasMany(rtMembers_model::class, 'member_id');
+    }
 }
