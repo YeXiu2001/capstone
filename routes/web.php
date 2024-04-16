@@ -7,6 +7,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\CitizenController;
 use App\Http\Controllers\mainmenuController;
 use App\Http\Controllers\RoutingController;
+use Illuminate\Routing\Events\Routing;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,7 +23,6 @@ use App\Http\Controllers\RoutingController;
 Route::get('/', function () {
     return view('auth.login');
 });
-
 
 
 Auth::routes();
@@ -56,6 +56,7 @@ Route::get('/reports-teamtbl', [mainmenuController::class, 'teamstblReports']);
 Route::get('/get-available-teams', [mainmenuController::class, 'getAvailableTeams']);
 Route::get('/get-deployment-details', [mainmenuController::class, 'getDeploymentDetails']);
 Route::post('/dismiss-report', [mainmenuController::class, 'dismissReportkanban']);
+Route::get('/get-latest-reports', [mainmenuController::class, 'fetchNewIncidents']);
 /** --------------------------../Reports Tab----------------------- */
 
 Route::get('/responseTeams', [mainmenuController::class, 'teams_view']);
@@ -73,8 +74,14 @@ Route::get('/get-rtmember/{id}', [mainmenuController::class, 'getRTmemberID']);
 
 
 Route::get('/routing', [RoutingController::class, 'routingView']);
-ROute::get('/incidents-assigned', [RoutingController::class, 'getAssignedIncidents']);
+Route::get('/incidents-assigned', [RoutingController::class, 'getAssignedIncidents']);
+Route::post('/report-resolve/{id}', [RoutingController::class, 'resolveReport']);
 
+Route::get('/manage-users', [mainmenuController::class, 'manageUsers']);
+Route::get('/fetch-pendingusers-tbl', [mainmenuController::class, 'citizenstbl']);
+Route::post('/users/approve/{user}', [mainmenuController::class, 'approveUser']);
+Route::post('/users/reject/{user}', [mainmenuController::class, 'rejectUser']);
+Route::get('/users/details/{user}', [mainmenuController::class, 'getUserDetails']);
 /** --------------------------../Admin Controller ----------------------- */
 Route::resources([
     '/roles' => RoleController::class,

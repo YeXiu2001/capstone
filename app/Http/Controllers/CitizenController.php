@@ -12,6 +12,9 @@ class CitizenController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
+        $this->middleware('permission:create-report', ['only' => ['add_incident_report']]);
+        $this->middleware('permission:read-userHome', ['only' => ['index']]);
+        // $this->middleware('permission:write-userHome', ['only' => ['index']]);
     }
 
     public function index()

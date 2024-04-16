@@ -18,11 +18,11 @@
                     <div class="card-body">
 
                     <div class="d-flex justify-content-end">
-                            <!-- @can('Items-Write') -->
+                            @can('write-responseTeam')
                             <div class="row">
                                 <button class="btn btn-primary btn-sm mb-2"data-bs-toggle="modal" data-bs-target="#add_t_modal">Add Teams</button>
                             </div>
-                            <!-- @endcan -->
+                            @endcan
                         </div>
                         @include('partials.teams_table', ['forteams' => $forteams])
                         
@@ -39,11 +39,11 @@
                     <div class="card-body">
 
                     <div class="d-flex justify-content-end">
-                            <!-- @can('Items-Write') -->
+                            @can('write-members')
                             <div class="row">
                                 <button class="btn btn-primary btn-sm mb-2" id="assign-memBtn" data-bs-toggle="modal" data-bs-target="#add_rtmembers_modal">Assign Members</button>
                             </div>
-                            <!-- @endcan -->
+                            @endcan
                         </div>
                         
                         @include('partials.responseTeams_table', ['rtmems' => $rtmems])

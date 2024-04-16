@@ -24,9 +24,9 @@
                     <div class="card-body">
 
                     <div class="d-flex justify-content-end">
-                            <!-- @can('Items-Write') -->
+                            @can('write-incident_types')
                                 <button class="btn btn-primary btn-sm mb-2"data-bs-toggle="modal" data-bs-target="#add_incident_modal">Add Incident Type</button>
-                            <!-- @endcan -->
+                            @endcan
                         </div>
 
                         @include('partials.incident_types_table', ['incident_types' => $incident_types])

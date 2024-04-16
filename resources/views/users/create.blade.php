@@ -37,6 +37,13 @@
                     </div>
 
                     <div class="mb-3 row">
+                        <label for="email" class="col-md-2 col-form-label text-md-end text-start">Contact Number</label>
+                        <div class="col-md-5">
+                          <input type="text" class="form-control" id="contact" name="contact">
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
                         <label for="password" class="col-md-2 col-form-label text-md-end text-start">Password</label>
                         <div class="col-md-5">
                           <input type="password" class="form-control @error('password') is-invalid @enderror" id="password" name="password">

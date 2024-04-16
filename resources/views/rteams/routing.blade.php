@@ -10,7 +10,7 @@
 
 <!-- Routing Machine -->
 <link rel="stylesheet" href="{{url('assets/js/maps/leaflet-routing/dist/leaflet-routing-machine.css') }}" />
-
+@vite(['resources/js/app.js'])
 @section('content')
 <style>
     .map-container {
@@ -18,22 +18,21 @@
        }
 
     #routing_map {
-        height: 87vh;
+        height: 80vh;
     }
 
-    #incident_dtls_btn {
+    .button-container{
         position: absolute;
-            bottom: 2px;
-            left: 15px;
-            z-index: 1000;
+        bottom: 2px;
+        z-index: 1000;
+        left: 2px
     }
-
 </style>
 
 <div class="mobile-menu-overlay"></div>
 <div class="main-container">
     <div class="pd-ltr-20">
-    @if($team)
+    <!-- @if($team)
     <p>Team Name: {{ $team->team_name }}</p>
     <p>Team ID: {{ $team->id }}</p>
     @else
@@ -56,17 +55,49 @@
     </div>
     @empty
         <p>No incidents assigned to your team.</p>
-    @endforelse
+    @endforelse -->
         <div class="map-container">
             <div id="routing_map">
             </div>
+            <div class="button-container mt-2">
+                <button type="button" class="btn btn-primary btn-sm mt-2" id="incident_dtls_btn" data-bs-toggle="modal" data-bs-target="#incident-details-modal"><i class="bx bx-detail"></i> Details</button>
+               
+            </div>
+            
         </div>
+    
+    
+</div>
+<div class="modal fade" id="incident-details-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Incident Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
 
+            <div class="modal-body">
+                @forelse ($incidents as $incident)
+                <div>
+                    <p hidden>Incident ID: {{ $incident->id }}</p>
+                    <p>Reporter: {{ $incident->reporter }}</p>
+                    <p>Contact: {{ $incident->contact }}</p>
+                    <p>Address: {{ $incident->address }}</p>
+                    <p>Case Type: {{ $incident->modelref_incidenttype->cases }}</p>
+                    <p>Description: {{ $incident->eventdesc ?? 'No Description Provided' }}</p>
+                    <img src="{{ asset('images/' . $incident->imagedir) }}" alt="No Image Sent" width="300vh">
+                </div>
+                @empty
+                    <p>No incidents assigned to your team.</p>
+                @endforelse
+            </div>
+        </div>
+    </div>
+</div>
 
     </div>
 
-    <button id="incident_dtls_btn" class="btn btn-primary btn-sm mt-2">View Incident Details</button>
-</div>
+    
 
 <!-- Map Implementation -->
 <script>
@@ -137,14 +168,35 @@
         if (@json($incidents).length > 0) {
             const firstIncident = @json($incidents)[0]; // Using the first incident as an example
 
-            // Add routing to the map
-            L.Routing.control({
+            // Initialize the router with options for the OSRM backend
+            var router = L.Routing.osrmv1({
+                serviceUrl: 'https://router.project-osrm.org/route/v1',
+                profile: 'car', // Specify the mode of transport
+                routingOptions: {
+                    alternatives: false, // Set to false if you want to receive only the shortest route
+                }
+            });
+
+            // Then, pass the router when creating the Routing control
+            var routingControl = L.Routing.control({
                 waypoints: [
                     L.latLng(userLat, userLng), // User's current location
                     L.latLng(firstIncident.lat, firstIncident.long) // First incident's location
                 ],
-                routeWhileDragging: true
+                router: router,
+                routeWhileDragging: false,
+                draggableWaypoints: true,
             }).addTo(map);
+            /** -------- Routing Prioritize Best Route ------- */
+            // routingControl.on('routesfound', function(e) {
+            //     var routes = e.routes;
+            //     routes.sort(function(a, b) {
+            //         return a.summary.totalDistance - b.summary.totalDistance;
+            //     });
+            //     var shortestRoute = routes[0];
+                
+            // });
+            // routingControl.route();
         }
     }, function(err) {
         console.error(err);
@@ -153,6 +205,57 @@
     });
 </script>
 <!-- ./Routing Implementation -->
+
+<!-- Resolve Report and Team to Available -->
+<script>
+    document.addEventListener('DOMContentLoaded', function(){
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        })//ajax
+
+        $('#btn-resolve-report').on('click', function(e) {
+            e.preventDefault(); 
+
+            var reportId = $(this).data('report-id');
+
+            // Perform the AJAX request
+            $.ajax({
+                url: '/report-resolve/' + reportId, // The URL to your route
+                type: 'POST', // The HTTP method
+                data: {
+                    id: reportId // Send the report ID along with the request
+                    
+                },
+                success: function(response) {
+                    console.log('Report Updated Successfully')
+                    console.log('Team is now Available')
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: response.success,
+                        showConfirmButton: false,
+                        timer:1500,
+                    });
+                    $('#rep-status').text('Resolved');
+                    $('#team-status').text('Available')
+                    
+                },
+                error: function(xhr) {
+                    // Handle any errors
+                    alert('Error: ' + xhr.responseText); // Alert the error message
+                }
+            });
+        });
+        
+    
+    });//DOM
+</script>
+<!-- Resolve Report and Team to Available -->
+
+
 <script src="{{url('assets/js/maps/allBarangay.js')}}"></script>    
 <script src="{{url('assets/js/maps/line.js')}}"></script>
 <script src="{{url('assets/js/maps/Iligan_full_admin_boundaries.js')}}"></script>
@@ -165,6 +268,6 @@
 <!-- leaflet locate control -->
 <script src="{{url('assets/js/maps/L.Control.Locate.min.js') }}"></script>
 <!-- Leaflet Routing JS -->
-<script src="{{url('assets/js/maps/leaflet-routing/dist/leaflet-routing-machine.js')}}"></script>
+<script src="{{url('assets/js/maps/leaflet-routing/dist/leaflet-routing-machine.min.js')}}"></script>
 
 @endsection

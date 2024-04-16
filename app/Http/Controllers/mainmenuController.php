@@ -11,9 +11,23 @@ use App\Models\rtMembers_model;
 use App\Models\IncidentDeploymentModel;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
-
+use Spatie\Permission\Models\Role;
+use Carbon\Carbon;
 class mainmenuController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('permission:read-incident_types', ['only' => ['incident_types_view']]);
+        $this->middleware('permission:write-incident_types', ['only' => ['add_incident_type', 'deleteIncidentType', 'getIncidentType', 'updateIncidentType']]);
+        $this->middleware('permission:readAndwrite-reports', ['only' => ['reports_view']]);
+        $this->middleware('permission:view-responseTeam', ['only' => ['teams_view', 'fetchTeamsTbl', 'fetchTeamsOptions', 'getTeamID']]);
+        $this->middleware('permission:write-responseTeam', ['only' => ['add_rteams', 'deleteTeams', 'updateTeam']]);
+        $this->middleware('permission:view-members', ['only' => ['teams_view', 'fetchTeamsMembersTbl', 'getRTmemberID']]);
+        $this->middleware('permission:write-members', ['only' => ['add_teammember', 'deleteRTmember']]);
+        $this->middleware('permission:readAndwrite-routing', ['only' => ['routingView']]);
+        $this->middleware('permission:read-manageusers', ['only' => ['manageUsers', 'citizenstbl']]);
+    }
 
     /** ------------------------ Incident Types --------------------------- */
     public function incident_types_view(){
@@ -109,6 +123,17 @@ class mainmenuController extends Controller
 
         return view('admin.reports', compact('kanbanIncidents', 'incident_types', 'available_RTeams', 'rteams'));
     }
+
+    public function fetchNewIncidents() {
+        $pendingReports = incident_reports::with(['modelref_incidenttype'])
+                            ->where('status', 'pending')
+                            ->get();
+        return response()->json($pendingReports);
+    }    
+    
+    
+    
+    
 
     public function  getAvailableTeams(){
         $available_RTeams = responseTeam_model::select('id', 'team_name')
@@ -277,12 +302,12 @@ class mainmenuController extends Controller
         $rtmems = rtMembers_model::with(['createdByUser:id,name', 'updatedByUser:id,name', 'teamRefTeams:id,team_name', 'member:id,name'])
         ->select('id', 'team_id', 'member_id', 'created_by', 'updated_by', 'created_at')
         ->orderBy('created_at', 'desc')
-        ->paginate(2);
+        ->paginate(5);
 
         $forteams = responseTeam_model::with(['createdByUser:id,name', 'updatedByUser:id,name'])
                     ->select('id', 'team_name', 'status', 'created_by', 'updated_by', 'created_at', 'updated_at')
                     ->orderBy('created_at', 'desc')
-                    ->paginate(2);
+                    ->paginate(5);
 
         return view('admin.responseTeams', compact('users', 'teams', 'rtmems', 'forteams'));
     }
@@ -291,7 +316,7 @@ class mainmenuController extends Controller
         $rtmems = rtMembers_model::with(['createdByUser:id,name', 'updatedByUser:id,name', 'teamRefTeams:id,team_name', 'member:id,name'])
         ->select('id', 'team_id', 'member_id', 'created_by', 'updated_by', 'created_at')
         ->orderBy('created_at', 'desc')
-        ->paginate(2);
+        ->paginate(5);
 
         return view('partials.responseTeams_table', compact('rtmems'))->render();
     }
@@ -301,7 +326,7 @@ class mainmenuController extends Controller
         $forteams = responseTeam_model::with(['createdByUser:id,name', 'updatedByUser:id,name'])
                     ->select('id', 'team_name', 'status', 'created_by', 'updated_by', 'created_at', 'updated_at')
                     ->orderBy('created_at', 'desc')
-                    ->paginate(2);
+                    ->paginate(5);
 
         return view('partials.teams_table', compact('forteams'))->render();
     }
@@ -427,4 +452,65 @@ public function routingView(){
     return view('admin.routing');
 }
 /** ----------------------- ./Routing ------------------------------- */
+
+/** ------------------------ Manage Users -------------------------- */
+public function manageUsers(){
+    $pending_users = User::select('id', 'name', 'email', 'contact', 'created_at', 'status')
+            ->where('status', 'pending')
+            ->orderBy('created_at', 'asc')
+            ->paginate(5);
+    
+    return view('admin.manage_users', compact('pending_users'));
+}
+
+public function citizenstbl(){
+    $pending_users = User::select('id', 'name', 'email', 'contact', 'created_at', 'status')
+            ->where('status', 'pending')
+            ->orderBy('created_at', 'asc')
+            ->paginate(5);
+    
+    return view('partials.manageuserstbl', compact('pending_users'))->render();
+}
+
+public function approveUser($userId)
+{
+    try {
+        $user = User::findOrFail($userId);
+        $user->status = 'approved';
+        $user->save();
+
+        // Assign "Citizens" role to the user
+        $role = Role::where('name', 'Citizens')->firstOrFail();
+        $user->assignRole($role);
+
+        return response()->json(['message' => 'User approved successfully.'], 200);
+    } catch (\Exception $e) {
+        return response()->json(['error' => 'Something went wrong.'], 500);
+    }
+}
+
+public function rejectUser($userId)
+{
+    try {
+        $user = User::findOrFail($userId);
+        $user->status = 'declined';
+        $user->save();
+
+
+        return response()->json(['message' => 'User Rejected successfully.'], 200);
+    } catch (\Exception $e) {
+        return response()->json(['error' => 'Something went wrong.'], 500);
+    }
+}
+
+public function getUserDetails(User $user) // Utilizing route model binding
+    {
+        return response()->json([
+            'name' => $user->name,
+            'email' => $user->email,
+            'contact' => $user->contact,
+            'id_card' => $user->id_card, 
+        ]);
+    }
+/** ------------------------ ./Manage Users -------------------------- */
 }

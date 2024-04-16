@@ -42,7 +42,7 @@
                                 </div>
                                 <div class="p-2">
 
-                                <form method="POST" action="{{ route('register') }}">
+                                <form method="POST" action="{{ route('register') }}" enctype="multipart/form-data">
                                     @csrf
 
                                     <div class="row mb-3">
@@ -52,6 +52,20 @@
                                             <input id="name" type="text" class="form-control @error('name') is-invalid @enderror" name="name" value="{{ old('name') }}" required autocomplete="name" autofocus>
 
                                             @error('name')
+                                                <span class="invalid-feedback" role="alert">
+                                                    <strong>{{ $message }}</strong>
+                                                </span>
+                                            @enderror
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-3">
+                                        <label for="name" class="col-md-4 col-form-label">{{ __('Contact') }}</label>
+
+                                        <div class="col-md-12">
+                                            <input id="contact" type="text" class="form-control @error('contact') is-invalid @enderror" name="contact" value="{{ old('contact') }}" required autocomplete="contact" autofocus>
+
+                                            @error('contact')
                                                 <span class="invalid-feedback" role="alert">
                                                     <strong>{{ $message }}</strong>
                                                 </span>
@@ -95,6 +109,14 @@
                                         </div>
                                     </div>
 
+                                    <div class="row mb-3">
+                                        <label for="id_card" class="col-md-6 col-form-label">{{ __('Upload Identification Card') }}</label>
+
+                                        <div class="col-md-12">
+                                            <input id="id_card" type="file"  accept="image/*" name="id_card" required>
+                                        </div>
+                                    </div>
+
                                     <div class="row mb-0">
                                         <div class="col-md-12">
                                             <button type="submit" class="btn btn-primary">
@@ -113,6 +135,9 @@
                 </div>
             </div>
         </div>
+        @if(session('debug'))
+        <script>alert('{{ session("debug") }}');</script>
+        @endif
 
         @include('layouts.components.script')
 

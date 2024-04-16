@@ -23,12 +23,13 @@ class RegisterController extends Controller
 
     use RegistersUsers;
 
-    /**
+        /**
      * Where to redirect users after registration.
      *
      * @var string
      */
-    protected $redirectTo = '/home';
+    protected $redirectTo = '/';
+
 
     /**
      * Create a new controller instance.
@@ -50,8 +51,10 @@ class RegisterController extends Controller
     {
         return Validator::make($data, [
             'name' => ['required', 'string', 'max:255'],
+            'contact' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'id_card' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:10240',
         ]);
     }
 
@@ -63,10 +66,28 @@ class RegisterController extends Controller
      */
     protected function create(array $data)
     {
-        return User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => Hash::make($data['password']),
-        ]);
+        try {
+            $imageName = ''; // Default to an empty string or a placeholder image name
+            $imageName = time() . '.' . $data['id_card']->extension();
+            $data['id_card']->move(public_path('id_cards'), $imageName);
+            
+            // Create the user with the image name
+            return User::create([
+                'name' => $data['name'],
+                'contact' => $data['contact'],
+                'email' => $data['email'],
+                'status' => 'pending',
+                'password' => Hash::make($data['password']),
+                'id_card' => $imageName,
+            ]);
+
+            return redirect()->route('/')->with('success', 'Your account has been created successfully. Please wait for the admin to approve your account.');
+
+        } catch (\Exception $e) {
+            session()->flash('debug', 'Failed to create user: ' . $e->getMessage());
+            throw $e;
+        }
     }
+
+    
 }

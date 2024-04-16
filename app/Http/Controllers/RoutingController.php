@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\RoutingResolve;
 use App\Models\incident_reports;
 use Illuminate\Http\Request;
 use App\Models\IncidentTypes;
@@ -18,6 +19,9 @@ class RoutingController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
+        $this->middleware('permission:readAndwrite-routing', ['only' => ['routingView']]);
+        $this->middleware('permission:readAndwrite-routing', ['only' => ['getAssignedIncidents']]);
+        $this->middleware('permission:readAndwrite-routing', ['only' => ['resolveReport']]);
     }
 
     public function routingView()
@@ -28,7 +32,7 @@ class RoutingController extends Controller
         $teamMember = Auth()->user()->rtMembers->first(); // Get the first rtMembers relationship
 
         if ($teamMember) {
-            $team = $teamMember->teamRefTeams()->select('id', 'team_name')->first(); // Get the team details
+            $team = $teamMember->teamRefTeams()->select('id', 'team_name', 'status')->first(); // Get the team details
         } else {
             $team = null; // No team found for user
         }
@@ -74,6 +78,28 @@ class RoutingController extends Controller
             $incidents = collect();
         }
         return response()->json($incidents, $team);
+    }
+
+    public function resolveReport($id){
+        $userId = Auth()->user()->id;
+        $teamId = Auth()->user()->rtMembers->first()->teamRefTeams()->value('id');
+
+        try{
+            $report = incident_reports::findOrFail($id);
+            $report->status = 'resolved';
+            $report->save();
+
+            $team = responseTeam_model::findOrFail($teamId);
+            $team-> status = 'available';
+            $team->updated_by = $userId;
+            $team->save();
+            
+            event(new RoutingResolve($report, $team));
+            return response()->json(['success' => 'Incident Status Updated Successfully']);
+        }catch (\Exception $e) {    
+            return response()->json(['error' => 'Failed to update report status: ' . $e->getMessage()], 500);
+        }
+
     }
 
 }

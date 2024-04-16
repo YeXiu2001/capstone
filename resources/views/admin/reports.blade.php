@@ -34,186 +34,192 @@
     </div>
 </div>
 
-
-<div class="row mt-2 kanban-boards">
-    <div class="col-lg-4">
-        <div class="card mb-5" style="border-color: gray; border-width: 2px; border-style: solid;">
+<div class=" row mt-2 card">
             <div class="card-body">
-                <h4 class="card-title mb-4">Pending Incidents</h4>
-                    <div id="pending-kanban" >
-                        <div id="pending-reports" class="pb-5 task-list">
-                            <!-- forelse Here to fetch data -->
-                            @forelse($kanbanIncidents as $index => $reports)
-                                @if($reports->status == 'pending')
-                                <div class="card task-box" id="pending-rep-{{$index + 1}}" data-report-id="{{$reports -> id}}" style="border-color: black; border-width: 1px; border-style: solid;">
-                                    <div class="card-body pending-cardBody">
-                                        <div class="dropdown float-end pending-dropdown">
-                                                <a href="#" class="dropdown-toggle arrow-none" data-bs-toggle="dropdown" aria-expanded="false">
-                                                    <i class="mdi mdi-dots-vertical m-0 text-muted h5"></i>
-                                                </a>
-                                                <div class="dropdown-menu dropdown-menu-end">
-                                                <a class="dropdown-item view-in-map" href="#" data-report-id="{{$reports->id}}">View in Map</a>
-                                                    <!-- <a class="dropdown-item">View Complete Details</a> -->
-                                                    <a class="dropdown-item edittask-details edit-preport-details" href="#" data-report-id="{{$reports->id}}" data-bs-toggle="modal" data-bs-target="edit_preport_modal ">Edit</a>
-                                                    <a class="dropdown-item dismiss-rep" data-report-id="{{$reports->id}}">Dismiss Report</a>
+                <h4 class="card-title mb-4">Handle Reports</h4>
+                <div class="row kanban-boards">
+                    <div class="col-lg-4">
+                        <div class="card mb-5" style="border-color: gray; border-width: 2px; border-style: solid;">
+                            <div class="card-body">
+                                <h4 class="card-title mb-4">Pending Incidents</h4>
+                                    <div id="pending-kanban" >
+                                        <div id="pending-reports" class="pb-5 task-list">
+                                            <!-- forelse Here to fetch data -->
+                                            @forelse($kanbanIncidents as $index => $reports)
+                                                @if($reports->status == 'pending')
+                                                <div class="card task-box" id="pending-rep-{{$index + 1}}" data-report-id="{{$reports -> id}}" style="border-color: black; border-width: 1px; border-style: solid;">
+                                                    <div class="card-body pending-cardBody">
+                                                        <div class="dropdown float-end pending-dropdown">
+                                                                <a href="#" class="dropdown-toggle arrow-none" data-bs-toggle="dropdown" aria-expanded="false">
+                                                                    <i class="mdi mdi-dots-vertical m-0 text-muted h5"></i>
+                                                                </a>
+                                                                <div class="dropdown-menu dropdown-menu-end">
+                                                                <a class="dropdown-item view-in-map" href="#" data-report-id="{{$reports->id}}">View in Map</a>
+                                                                    <!-- <a class="dropdown-item">View Complete Details</a> -->
+                                                                    <a class="dropdown-item edittask-details edit-preport-details" href="#" data-report-id="{{$reports->id}}" data-bs-toggle="modal" data-bs-target="edit_preport_modal ">Edit</a>
+                                                                    <a class="dropdown-item dismiss-rep" data-report-id="{{$reports->id}}">Dismiss Report</a>
+                                                                </div>
+                                                            </div>
+                                                        <div class="float-end ms-2">
+                                                            <span class="badge rounded-pill badge-soft-secondary font-size-12" id="k-rep-status" >{{ $reports -> status }}</span>
+                                                        </div>
+                                                        <div>
+                                                            <h5 class="font-size-15"><a href="javascript: void(0);" class="text-dark" id="k-rep-type" >{{ $reports -> modelref_incidenttype->cases  }}</a></h5>
+                                                            <strong><p class="mb-1" id="k-report-reporter" >{{ $reports -> reporter }}</p></strong>
+                                                            <strong><p class="mb-1" id="k-report-contact" >{{ $reports -> contact }}</p></strong>
+                                                            <p class="text-muted mb-1" id="k-report-createdAt" >{{ $reports -> created_at->format('d-m-Y') }}</p>
+                                                            <p class="text-muted mb-4" id="k-report-address">{{ $reports->address }}</p>
+
+                                                        </div>
+                                                        <div class="text">
+                                                        <h5 class="font-size-15 mb-1" id="k-report-eventdesc">{{ $reports->eventdesc ?? 'No Description Provided' }}</h5>
+                                                    </div>
+                                                    <img src="{{ asset('images/' . $reports->imagedir) }}" alt="No Image Sent" style="width: 200px;">
                                                 </div>
                                             </div>
-                                        <div class="float-end ms-2">
-                                            <span class="badge rounded-pill badge-soft-secondary font-size-12" id="k-rep-status" >{{ $reports -> status }}</span>
-                                        </div>
-                                        <div>
-                                            <h5 class="font-size-15"><a href="javascript: void(0);" class="text-dark" id="k-rep-type" >{{ $reports -> modelref_incidenttype->cases  }}</a></h5>
-                                            <strong><p class="mb-1" id="k-report-reporter" >{{ $reports -> reporter }}</p></strong>
-                                            <strong><p class="mb-1" id="k-report-contact" >{{ $reports -> contact }}</p></strong>
-                                            <p class="text-muted mb-1" id="k-report-createdAt" >{{ $reports -> created_at->format('d-m-Y') }}</p>
-                                            <p class="text-muted mb-4" id="k-report-address">{{ $reports->address }}</p>
-
-                                        </div>
-                                        <div class="text">
-                                        <h5 class="font-size-15 mb-1" id="k-report-eventdesc">{{ $reports->eventdesc ?? 'No Description Provided' }}</h5>
+                                        <!-- end task card -->
+                                        @endif
+                                        @empty
+                                        @endforelse
                                     </div>
-                                    <img src="{{ asset('images/' . $reports->imagedir) }}" alt="No Image Sent" style="width: 200px;">
+
+                                    <div class="text-center d-grid">
+                                        <a href="javascript: void(0);" class="btn btn-primary waves-effect waves-light addtask-btn" data-bs-toggle="modal" data-bs-target=".bs-example-modal-lg" data-id="#upcoming-task"><i class="mdi mdi-plus me-1"></i> Add New</a>
+                                    </div>
                                 </div>
                             </div>
-                        <!-- end task card -->
-                        @endif
-                        @empty
-                        @endforelse
+                        </div>
                     </div>
+                    <!-- end col -->
 
-                    <div class="text-center d-grid">
-                        <a href="javascript: void(0);" class="btn btn-primary waves-effect waves-light addtask-btn" data-bs-toggle="modal" data-bs-target=".bs-example-modal-lg" data-id="#upcoming-task"><i class="mdi mdi-plus me-1"></i> Add New</a>
+                    <div class="col-lg-4">
+                        <div class="card mb-2" style="border-color: orange; border-width: 2px; border-style: solid;">
+                            <div class="card-body">
+                                <h4 class="card-title mb-4">In Progress</h4>
+                                    <div id="inprog-kanban">
+                                        <div id="ongoing-reports" class="pb-5 task-list">
+                                            <!-- forelse Here to fetch data -->
+                                            @forelse($kanbanIncidents as $index => $reports)
+                                                @if($reports->status == 'ongoing')
+                                            <div class="card task-box" id="inprog-rep-{{$index + 1}}" data-report-id='{{$reports->id}}' style="border-color: black; border-width: 1px; border-style: solid;">
+                                                    <div class="card-body ongoing-cardBody">
+                                                    <div class="dropdown float-end ongoing-dropdown">
+                                                                <a href="#" class="dropdown-toggle arrow-none" data-bs-toggle="dropdown" aria-expanded="false">
+                                                                    <i class="mdi mdi-dots-vertical m-0 text-muted h5"></i>
+                                                                </a>
+                                                                <div class="dropdown-menu dropdown-menu-end">
+                                                                <a class="dropdown-item view-in-map" href="#" data-report-id="{{$reports->id}}">View in Map</a>
+                                                                </div>
+                                                            </div>
+                                                        <div class="float-end ms-2">
+                                                            <span class="badge rounded-pill badge-soft-warning font-size-12" id="k-rep-status" >{{ $reports->status }}</span>
+                                                        </div>
+                                                        <div>
+                                                            <h5 class="font-size-15"><a href="javascript: void(0);" class="text-dark" id="k-rep-type" >{{ $reports->modelref_incidenttype->cases }}</a></h5>
+
+
+                                                            <strong><p class="mb-1" id="k-report-reporter" >{{ $reports -> reporter }}</p></strong>
+                                                            <strong><p class="mb-1" id="k-report-contact" >{{ $reports -> contact }}</p></strong>
+                                                            <p class="text-muted mb-1" id="k-report-createdAt" >{{ $reports -> created_at->format('d-m-Y') }}</p>
+                                                            <p class="text-muted mb-4" id="k-report-address">{{ $reports->address }}</p>
+                                                        </div>
+                                                        <div class="text">
+                                                        <h5 class="font-size-15 mb-1" id="k-report-eventdesc">{{ $reports->eventdesc ?? 'No Description Provided' }}</h5>
+                                                    </div>
+                                                    <img src="{{ asset('images/' . $reports->imagedir) }}" alt="No Image Sent" style="width: 200px;">
+                                                    <!-- Display deployment information -->
+                                                    <!-- Accumulate team names -->
+                                                    @php
+                                                        $deployedTeams = $reports->deployments->pluck('deployedRteam.team_name')->unique();
+                                                        $deployedBy = optional($reports->deployments->first())->deployedBy->name ?? 'N/A';
+                                                    @endphp
+
+                                                    @if($deployedTeams->isNotEmpty())
+                                                        <p class="mb-1 mt-2" id="k-deployed-team"><strong>Deployed Teams:</strong> {{ implode(', ', $deployedTeams->toArray()) }}</p>
+                                                    @endif
+                                                    
+                                                    <!-- Display deployed by -->
+                                                    <p class="mb-1" id="k-deployedBy"><strong>Deployed By:</strong> {{ $deployedBy }}</p>
+                                                </div>
+
+                                                
+                                            </div>
+                                        <!-- end task card -->
+                                        @endif
+                                        @empty
+                                        @endforelse
+                                        </div>
+                                    </div>
+                            </div>
+                        </div>
                     </div>
+                    <!-- end col -->
+
+                    <div class="col-lg-4">
+                        <div class="card mb-5" style="border-color: green; border-width: 2px; border-style: solid;">
+                            <div class="card-body">
+                                <h4 class="card-title mb-4">Resolved</h4>
+                                    <div id="resolved-kanban">
+                                        <div id="resolved-reports" class="pb-5 task-list">
+                                        <!-- forelse Here to fetch data -->
+                                        @forelse($kanbanIncidents as $index => $reports)
+                                            @if($reports->status == 'resolved')
+                                            <div class="card task-box" id="resolved-rep-{{$index + 1}}" data-report-id='{{$reports->id}}' style="border-color: black; border-width: 1px; border-style: solid;">
+                                                <div class="card-body">
+                                                <div class="dropdown float-end resolved-dropdown">
+                                                                <a href="#" class="dropdown-toggle arrow-none" data-bs-toggle="dropdown" aria-expanded="false">
+                                                                    <i class="mdi mdi-dots-vertical m-0 text-muted h5"></i>
+                                                                </a>
+                                                                <div class="dropdown-menu dropdown-menu-end">
+                                                                    <a class="dropdown-item view-in-map" href="#" data-report-id="{{$reports->id}}">View in Map</a>
+                                                                    <a class="dropdown-item">View Complete Details</a>
+                                                                </div>
+                                                            </div>
+                                                    <div class="float-end ms-2">
+                                                        <span class="badge rounded-pill badge-soft-success font-size-12" id="k-rep-status" >{{ $reports->status }}</span>
+                                                    </div>
+                                                    <div>
+                                                        <h5 class="font-size-15"><a href="javascript: void(0);" class="text-dark" id="k-rep-type" >{{ $reports->modelref_incidenttype->cases }}</a></h5>
+                                                        <strong><p class="mb-1" id="k-report-reporter" >{{ $reports -> reporter }}</p></strong>
+                                                        <strong><p class="mb-1" id="k-report-contact" >{{ $reports -> contact }}</p></strong>
+                                                        <p class="text-muted mb-1" id="k-report-createdAt" >{{ $reports -> created_at->format('d-m-Y') }}</p>
+                                                        <p class="text-muted mb-4" id="k-report-address">{{ $reports->address }}</p>
+                                                    </div>
+                                                    <div class="text">
+                                                        <h5 class="font-size-15 mb-1" id="k-report-eventdesc">{{ $reports->eventdesc ?? 'No Description Provided' }}</h5>
+                                                    </div>
+                                                    <img src="{{ asset('images/' . $reports->imagedir) }}" alt="No Image Sent" style="width: 200px;">
+                                                    <!-- Display deployment information -->
+                                                    <!-- Accumulate team names -->
+                                                    @php
+                                                        $deployedTeams = $reports->deployments->pluck('deployedRteam.team_name')->unique();
+                                                        $deployedBy = optional($reports->deployments->first())->deployedBy->name ?? 'N/A';
+                                                    @endphp
+
+                                                    @if($deployedTeams->isNotEmpty())
+                                                        <p class="mb-1 mt-2" id="k-deployed-team"><strong>Deployed Teams:</strong> {{ implode(', ', $deployedTeams->toArray()) }}</p>
+                                                    @endif
+                                                    
+                                                    <!-- Display deployed by -->
+                                                    <p class="mb-1" id="k-deployedBy"><strong>Deployed By:</strong> {{ $deployedBy }}</p>
+                                                    </div>
+                                            </div>
+                                            @endif
+                                            @empty
+                                            @endforelse
+                                        <!-- end task card -->
+                                        </div>
+                                    </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- end col -->
+
                 </div>
             </div>
         </div>
-    </div>
-    <!-- end col -->
-
-    <div class="col-lg-4">
-        <div class="card mb-2" style="border-color: orange; border-width: 2px; border-style: solid;">
-            <div class="card-body">
-                <h4 class="card-title mb-4">In Progress</h4>
-                    <div id="inprog-kanban">
-                        <div id="ongoing-reports" class="pb-5 task-list">
-                            <!-- forelse Here to fetch data -->
-                            @forelse($kanbanIncidents as $index => $reports)
-                                @if($reports->status == 'ongoing')
-                            <div class="card task-box" id="inprog-rep-{{$index + 1}}" data-report-id='{{$reports->id}}' style="border-color: black; border-width: 1px; border-style: solid;">
-                                    <div class="card-body ongoing-cardBody">
-                                    <div class="dropdown float-end ongoing-dropdown">
-                                                <a href="#" class="dropdown-toggle arrow-none" data-bs-toggle="dropdown" aria-expanded="false">
-                                                    <i class="mdi mdi-dots-vertical m-0 text-muted h5"></i>
-                                                </a>
-                                                <div class="dropdown-menu dropdown-menu-end">
-                                                <a class="dropdown-item view-in-map" href="#" data-report-id="{{$reports->id}}">View in Map</a>
-                                                </div>
-                                            </div>
-                                        <div class="float-end ms-2">
-                                            <span class="badge rounded-pill badge-soft-warning font-size-12" id="k-rep-status" >{{ $reports->status }}</span>
-                                        </div>
-                                        <div>
-                                            <h5 class="font-size-15"><a href="javascript: void(0);" class="text-dark" id="k-rep-type" >{{ $reports->modelref_incidenttype->cases }}</a></h5>
 
 
-                                            <strong><p class="mb-1" id="k-report-reporter" >{{ $reports -> reporter }}</p></strong>
-                                            <strong><p class="mb-1" id="k-report-contact" >{{ $reports -> contact }}</p></strong>
-                                            <p class="text-muted mb-1" id="k-report-createdAt" >{{ $reports -> created_at->format('d-m-Y') }}</p>
-                                            <p class="text-muted mb-4" id="k-report-address">{{ $reports->address }}</p>
-                                        </div>
-                                        <div class="text">
-                                        <h5 class="font-size-15 mb-1" id="k-report-eventdesc">{{ $reports->eventdesc ?? 'No Description Provided' }}</h5>
-                                    </div>
-                                    <img src="{{ asset('images/' . $reports->imagedir) }}" alt="No Image Sent" style="width: 200px;">
-                                     <!-- Display deployment information -->
-                                    <!-- Accumulate team names -->
-                                    @php
-                                        $deployedTeams = $reports->deployments->pluck('deployedRteam.team_name')->unique();
-                                        $deployedBy = optional($reports->deployments->first())->deployedBy->name ?? 'N/A';
-                                    @endphp
-
-                                    @if($deployedTeams->isNotEmpty())
-                                        <p class="mb-1 mt-2" id="k-deployed-team"><strong>Deployed Teams:</strong> {{ implode(', ', $deployedTeams->toArray()) }}</p>
-                                    @endif
-                                    
-                                    <!-- Display deployed by -->
-                                    <p class="mb-1" id="k-deployedBy"><strong>Deployed By:</strong> {{ $deployedBy }}</p>
-                                </div>
-
-                                   
-                            </div>
-                        <!-- end task card -->
-                        @endif
-                        @empty
-                        @endforelse
-                        </div>
-                    </div>
-            </div>
-        </div>
-    </div>
-    <!-- end col -->
-
-    <div class="col-lg-4">
-        <div class="card mb-5" style="border-color: green; border-width: 2px; border-style: solid;">
-            <div class="card-body">
-                <h4 class="card-title mb-4">Resolved</h4>
-                    <div id="resolved-kanban">
-                        <div id="resolved-reports" class="pb-5 task-list">
-                           <!-- forelse Here to fetch data -->
-                           @forelse($kanbanIncidents as $index => $reports)
-                            @if($reports->status == 'resolved')
-                            <div class="card task-box" id="resolved-rep-{{$index + 1}}" data-report-id='{{$reports->id}}' style="border-color: black; border-width: 1px; border-style: solid;">
-                                <div class="card-body">
-                                <div class="dropdown float-end resolved-dropdown">
-                                                <a href="#" class="dropdown-toggle arrow-none" data-bs-toggle="dropdown" aria-expanded="false">
-                                                    <i class="mdi mdi-dots-vertical m-0 text-muted h5"></i>
-                                                </a>
-                                                <div class="dropdown-menu dropdown-menu-end">
-                                                    <a class="dropdown-item view-in-map" href="#" data-report-id="{{$reports->id}}">View in Map</a>
-                                                    <a class="dropdown-item">View Complete Details</a>
-                                                </div>
-                                            </div>
-                                    <div class="float-end ms-2">
-                                        <span class="badge rounded-pill badge-soft-success font-size-12" id="k-rep-status" >{{ $reports->status }}</span>
-                                    </div>
-                                    <div>
-                                        <h5 class="font-size-15"><a href="javascript: void(0);" class="text-dark" id="k-rep-type" >{{ $reports->modelref_incidenttype->cases }}</a></h5>
-                                        <strong><p class="mb-1" id="k-report-reporter" >{{ $reports -> reporter }}</p></strong>
-                                        <strong><p class="mb-1" id="k-report-contact" >{{ $reports -> contact }}</p></strong>
-                                        <p class="text-muted mb-1" id="k-report-createdAt" >{{ $reports -> created_at->format('d-m-Y') }}</p>
-                                        <p class="text-muted mb-4" id="k-report-address">{{ $reports->address }}</p>
-                                    </div>
-                                    <div class="text">
-                                        <h5 class="font-size-15 mb-1" id="k-report-eventdesc">{{ $reports->eventdesc ?? 'No Description Provided' }}</h5>
-                                    </div>
-                                    <img src="{{ asset('images/' . $reports->imagedir) }}" alt="No Image Sent" style="width: 200px;">
-                                    <!-- Display deployment information -->
-                                    <!-- Accumulate team names -->
-                                    @php
-                                        $deployedTeams = $reports->deployments->pluck('deployedRteam.team_name')->unique();
-                                        $deployedBy = optional($reports->deployments->first())->deployedBy->name ?? 'N/A';
-                                    @endphp
-
-                                    @if($deployedTeams->isNotEmpty())
-                                        <p class="mb-1 mt-2" id="k-deployed-team"><strong>Deployed Teams:</strong> {{ implode(', ', $deployedTeams->toArray()) }}</p>
-                                    @endif
-                                    
-                                    <!-- Display deployed by -->
-                                    <p class="mb-1" id="k-deployedBy"><strong>Deployed By:</strong> {{ $deployedBy }}</p>
-                                    </div>
-                            </div>
-                            @endif
-                            @empty
-                            @endforelse
-                        <!-- end task card -->
-                        </div>
-                    </div>
-            </div>
-        </div>
-    </div>
-    <!-- end col -->
-
-</div>
 </div>
 
 
@@ -803,6 +809,8 @@
 </script>
 <!-- Edit Pending Report Modal END -->
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.33/moment-timezone-with-data-10-year-range.min.js"></script>
 <script src="{{url('assets/js/maps/allBarangay.js')}}"></script>    
 <script src="{{url('assets/js/maps/line.js')}}"></script>
 <script src="{{url('assets/js/maps/Iligan_full_admin_boundaries.js')}}"></script>

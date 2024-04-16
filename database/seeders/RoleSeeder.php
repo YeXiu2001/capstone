@@ -13,23 +13,56 @@ class RoleSeeder extends Seeder
      */
     public function run(): void
     {
-        Role::create(['name' => 'Super Admin']);
+        $superAdmin = Role::create(['name' => 'Super Admin']);
         $admin = Role::create(['name' => 'Admin']);
-        $productManager = Role::create(['name' => 'Product Manager']);
+        $responseTeam = Role::create(['name' => 'Response Team']);
+        $citizens = Role::create(['name' => 'Citizens']);
 
-        $admin->givePermissionTo([
+        $superAdmin->givePermissionTo([
+            'read-access',
+            'create-role',
+            'edit-role',
+            'delete-role',
             'create-user',
             'edit-user',
             'delete-user',
-            'create-product',
-            'edit-product',
-            'delete-product'
+            'create-report',
+            'read-userHome',
+            'write-userHome',
+            'read-dashboard',
+            'read-incident_types',
+            'write-incident_types',
+            'view-responseTeam',
+            'write-responseTeam',
+            'view-members',
+            'write-members',
+            'readAndwrite-reports',
+            'read-manageusers',
+            'write-manageusers',
         ]);
 
-        $productManager->givePermissionTo([
-            'create-product',
-            'edit-product',
-            'delete-product'
+        $admin->givePermissionTo([
+            'read-dashboard',
+            'read-incident_types',
+            'write-incident_types',
+            'view-responseTeam',
+            'write-responseTeam',
+            'view-members',
+            'write-members',
+            'readAndwrite-reports',
+            'read-manageusers',
+            'write-manageusers',
+        ]);
+
+        $responseTeam->givePermissionTo([
+            'read-dashboard',
+            'readAndwrite-routing',
+        ]);
+
+        $citizens->givePermissionTo([
+            'create-report',
+            'read-userHome',
+            'write-userHome',
         ]);
     }
 }

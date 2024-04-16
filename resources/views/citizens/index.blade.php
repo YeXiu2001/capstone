@@ -69,7 +69,7 @@
         <form id="addIncidentReportForm">
         @csrf
         <!-- lat and long -->
-        <div class="input-group pt-2 col-auto">
+        <div class="input-group pt-2 col-auto" hidden>
           <span class="input-group-text">Lat and Lng</span>
           <input type="text" id="lat" name="lat" class="form-control" >
           <input type="text" id="long" name="long" class="form-control" >

@@ -19,6 +19,7 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->enum('status', ['pending', 'approved', 'declined'])->default('pending');
+            $table->string('id_card')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });
