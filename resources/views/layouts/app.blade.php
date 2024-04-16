@@ -2,7 +2,7 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     @include('layouts.components.head')
-    
+    @vite(['resources/js/app.js'])
 </head>
 <body data-sidebar="dark">
     <div id="app">

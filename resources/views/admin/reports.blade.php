@@ -809,6 +809,15 @@
 </script>
 <!-- Edit Pending Report Modal END -->
 
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        Echo.channel('reports')
+            .listen('AddReport', (e) => {
+                console.log('Incident report event received:', e);
+            });
+    });
+</script>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.33/moment-timezone-with-data-10-year-range.min.js"></script>
 <script src="{{url('assets/js/maps/allBarangay.js')}}"></script>    

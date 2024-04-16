@@ -2,11 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\AddReport;
+use App\Events\RoutingResolve;
 use Illuminate\Http\Request;
 use App\Models\IncidentTypes;
 use App\Models\incident_reports;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
+
 class CitizenController extends Controller
 {
     public function __construct()
@@ -77,6 +81,8 @@ class CitizenController extends Controller
             $incident_report->eventdesc = $eventdesc;
             $incident_report->imagedir = $imageName;
             $incident_report->save();
+
+            event(new AddReport($incident_report));
             return response()->json(['success' => 'Incident Report Added Successfully']);
         } catch (\Exception $e) {
             // Log the error or handle it as needed
