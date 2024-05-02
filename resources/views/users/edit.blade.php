@@ -4,9 +4,9 @@
 <div class="row justify-content-center">
     <div class="col-md-12">
         <div class="card">
-            <div class="card-header">
+        <div class="card-header">
                 <div class="float-start">
-                    Edit User
+                    <h4 class="card-title card-title-dash">Edit User</h4>
                 </div>
                 <div class="float-end">
                     <a href="{{ route('users.index') }}" class="btn btn-primary btn-sm">&larr; Back</a>

@@ -36,11 +36,13 @@
                             <div class="col-12">
                                 <div class="card overflow-hidden">
                                     
-                                    <div class="card-body">
+                                <div class="card-body pt-3" style="background: rgb(248, 248, 251);">
                                         <div class="row">
                                            
 
                                         @yield('content')
+
+                                        
                                            
                                         </div>
                                     </div>

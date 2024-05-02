@@ -24,33 +24,44 @@ class RoutingController extends Controller
         $this->middleware('permission:readAndwrite-routing', ['only' => ['resolveReport']]);
     }
 
-    public function routingView()
-    {
-        $userId = Auth()->user()->id; // Correctly get the authenticated user
+    public function routingView() {
+        $userId = auth()->user()->id;
     
-        // Assuming a user belongs to a single team
-        $teamMember = Auth()->user()->rtMembers->first(); // Get the first rtMembers relationship
-
-        if ($teamMember) {
-            $team = $teamMember->teamRefTeams()->select('id', 'team_name', 'status')->first(); // Get the team details
-        } else {
-            $team = null; // No team found for user
+        // Get the first rtMembers relationship
+        $teamMember = auth()->user()->rtMembers->first();
+    
+        if (!$teamMember) {
+            // Pass a flag indicating no team is found
+            return view('rteams.routing', [
+                'team' => null,
+                'incidents' => collect(),
+                'noTeam' => true,
+            ]);
         }
-
-        // Fetch the team ID for the logged-in user
-        $teamId = Auth()->user()->rtMembers->first()->teamRefTeams()->value('id');
-
+    
+        // Get the team details
+        $team = $teamMember->teamRefTeams()->select('id', 'team_name', 'status')->first();
+    
+        $teamId = $teamMember->teamRefTeams()->value('id');
+    
+        $incidents = collect();
+    
         if ($teamId) {
             $incidents = incident_reports::with(['modelref_incidenttype', 'deployments'])
                 ->whereHas('deployments', function($query) use ($teamId) {
                     $query->where('deployed_rteam', $teamId)
-                            ->where('status', 'ongoing');
+                          ->where('status', 'ongoing');
                 })->get();
-        } else {
-            $incidents = collect();
         }
-        return view('rteams.routing', compact('team', 'incidents' ));
+    
+        return view('rteams.routing', [
+            'team' => $team,
+            'incidents' => $incidents,
+            'noTeam' => false,
+        ]);
     }
+    
+    
 
     public function getAssignedIncidents(Request $request)
     {

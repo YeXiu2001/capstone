@@ -8,84 +8,98 @@
 <!-- leaflet geocoder for search -->
 <link rel="stylesheet" href="{{url('assets/js/maps/Control.Geocoder.css') }}" />       
 
-
+<link rel="stylesheet" href="{{url('assets/libs/toastr/build/toastr.min.css')}}">
 <script src="{{ url('assets/libs/dragula/dragula.min.js') }}"></script>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
 @section('content')
 <div class="mobile-menu-overlay"></div>
 <div class="main-container">
 <div class="pd-ltr-20">
 <style>
     #admin_map {
-         height: 60vh; 
+         height: 50vh; 
          }
+    
+    .top-card{
+        height: 50vh;
+    }
+
+    #reports_team_tbl {
+    font-size: 12px; /* Adjust to a suitable smaller size */
+    width: 100%; /* Ensures the table stretches to fit its container */
+}
+
 </style>
 
 <div class="row mb-2">
-    <div class="col-4">
-        <div class="card">
+    <div class="col-5">
+        <div class="card top-card">
             <div class="card-body">
                 <h4 class="card-title mb-4">List of Response Teams</h4>
                 @include('partials.reports_teamtbl', ['rteams' => $rteams])
             </div>
         </div>
     </div>
-    <div class="col-8">
+    <div class="col-7">
             <div id="admin_map"></div>
     </div>
 </div>
 
-<div class=" row mt-2 card">
+<div class=" row card">
+    <div class="mt-3">
+        <h4 class="card-title float-start">Handle Reports</h4>
+        <button class="ms-2 btn btn-primary btn-sm mb-2 float-end" id="refetch-data">Refetch Data</button>
+        <a href="/allreports" class="btn btn-primary btn-sm mb-2 float-end">View All Reports</a>
+    </div>
             <div class="card-body">
-                <h4 class="card-title mb-4">Handle Reports</h4>
                 <div class="row kanban-boards">
                     <div class="col-lg-4">
                         <div class="card mb-5" style="border-color: gray; border-width: 2px; border-style: solid;">
                             <div class="card-body">
+                               
                                 <h4 class="card-title mb-4">Pending Incidents</h4>
                                     <div id="pending-kanban" >
                                         <div id="pending-reports" class="pb-5 task-list">
                                             <!-- forelse Here to fetch data -->
-                                            @forelse($kanbanIncidents as $index => $reports)
-                                                @if($reports->status == 'pending')
-                                                <div class="card task-box" id="pending-rep-{{$index + 1}}" data-report-id="{{$reports -> id}}" style="border-color: black; border-width: 1px; border-style: solid;">
+
+                                                <div class="card task-box" id="pending-rep-" data-report-id="" style="border-color: black; border-width: 1px; border-style: solid;">
                                                     <div class="card-body pending-cardBody">
                                                         <div class="dropdown float-end pending-dropdown">
                                                                 <a href="#" class="dropdown-toggle arrow-none" data-bs-toggle="dropdown" aria-expanded="false">
                                                                     <i class="mdi mdi-dots-vertical m-0 text-muted h5"></i>
                                                                 </a>
                                                                 <div class="dropdown-menu dropdown-menu-end">
-                                                                <a class="dropdown-item view-in-map" href="#" data-report-id="{{$reports->id}}">View in Map</a>
+                                                                <a class="dropdown-item view-in-map" href="#" data-report-id="">View in Map</a>
                                                                     <!-- <a class="dropdown-item">View Complete Details</a> -->
-                                                                    <a class="dropdown-item edittask-details edit-preport-details" href="#" data-report-id="{{$reports->id}}" data-bs-toggle="modal" data-bs-target="edit_preport_modal ">Edit</a>
-                                                                    <a class="dropdown-item dismiss-rep" data-report-id="{{$reports->id}}">Dismiss Report</a>
+                                                                    <a class="dropdown-item edittask-details edit-preport-details" href="#" data-report-id="" data-bs-toggle="modal" data-bs-target="edit_preport_modal ">Edit</a>
+                                                                    <a class="dropdown-item dismiss-rep" data-report-id="">Dismiss Report</a>
                                                                 </div>
                                                             </div>
                                                         <div class="float-end ms-2">
-                                                            <span class="badge rounded-pill badge-soft-secondary font-size-12" id="k-rep-status" >{{ $reports -> status }}</span>
+                                                            <span class="badge rounded-pill badge-soft-secondary font-size-12" id="k-rep-status" ></span>
                                                         </div>
                                                         <div>
-                                                            <h5 class="font-size-15"><a href="javascript: void(0);" class="text-dark" id="k-rep-type" >{{ $reports -> modelref_incidenttype->cases  }}</a></h5>
-                                                            <strong><p class="mb-1" id="k-report-reporter" >{{ $reports -> reporter }}</p></strong>
-                                                            <strong><p class="mb-1" id="k-report-contact" >{{ $reports -> contact }}</p></strong>
-                                                            <p class="text-muted mb-1" id="k-report-createdAt" >{{ $reports -> created_at->format('d-m-Y') }}</p>
-                                                            <p class="text-muted mb-4" id="k-report-address">{{ $reports->address }}</p>
+                                                            <h5 class="font-size-15"><a href="javascript: void(0);" class="text-dark" id="k-rep-type" ></a></h5>
+                                                            <strong><p class="mb-1" id="k-report-reporter" ></p></strong>
+                                                            <strong><p class="mb-1" id="k-report-contact" ></p></strong>
+                                                            <p class="text-muted mb-1" id="k-report-createdAt" ></p>
+                                                            <p class="text-muted mb-4" id="k-report-address"></p>
 
                                                         </div>
                                                         <div class="text">
-                                                        <h5 class="font-size-15 mb-1" id="k-report-eventdesc">{{ $reports->eventdesc ?? 'No Description Provided' }}</h5>
+                                                        <h5 class="font-size-15 mb-1" id="k-report-eventdesc"></h5>
                                                     </div>
-                                                    <img src="{{ asset('images/' . $reports->imagedir) }}" alt="No Image Sent" style="width: 200px;">
+                                                    <img src="{{ asset('images') }}" alt="No Image Sent" style="width: 200px;">
                                                 </div>
                                             </div>
                                         <!-- end task card -->
-                                        @endif
-                                        @empty
-                                        @endforelse
                                     </div>
 
-                                    <div class="text-center d-grid">
+                                    <!-- <div class="text-center d-grid">
                                         <a href="javascript: void(0);" class="btn btn-primary waves-effect waves-light addtask-btn" data-bs-toggle="modal" data-bs-target=".bs-example-modal-lg" data-id="#upcoming-task"><i class="mdi mdi-plus me-1"></i> Add New</a>
-                                    </div>
+                                    </div> -->
                                 </div>
                             </div>
                         </div>
@@ -99,55 +113,45 @@
                                     <div id="inprog-kanban">
                                         <div id="ongoing-reports" class="pb-5 task-list">
                                             <!-- forelse Here to fetch data -->
-                                            @forelse($kanbanIncidents as $index => $reports)
-                                                @if($reports->status == 'ongoing')
-                                            <div class="card task-box" id="inprog-rep-{{$index + 1}}" data-report-id='{{$reports->id}}' style="border-color: black; border-width: 1px; border-style: solid;">
+                                          
+                                            <div class="card task-box" id="inprog-rep" data-report-id='' style="border-color: black; border-width: 1px; border-style: solid;">
                                                     <div class="card-body ongoing-cardBody">
                                                     <div class="dropdown float-end ongoing-dropdown">
                                                                 <a href="#" class="dropdown-toggle arrow-none" data-bs-toggle="dropdown" aria-expanded="false">
                                                                     <i class="mdi mdi-dots-vertical m-0 text-muted h5"></i>
                                                                 </a>
                                                                 <div class="dropdown-menu dropdown-menu-end">
-                                                                <a class="dropdown-item view-in-map" href="#" data-report-id="{{$reports->id}}">View in Map</a>
+                                                                <a class="dropdown-item view-in-map" href="#" data-report-id="">View in Map</a>
                                                                 </div>
                                                             </div>
                                                         <div class="float-end ms-2">
-                                                            <span class="badge rounded-pill badge-soft-warning font-size-12" id="k-rep-status" >{{ $reports->status }}</span>
+                                                            <span class="badge rounded-pill badge-soft-warning font-size-12" id="k-rep-status" ></span>
                                                         </div>
                                                         <div>
-                                                            <h5 class="font-size-15"><a href="javascript: void(0);" class="text-dark" id="k-rep-type" >{{ $reports->modelref_incidenttype->cases }}</a></h5>
+                                                            <h5 class="font-size-15"><a href="javascript: void(0);" class="text-dark" id="k-rep-type" ></a></h5>
 
 
-                                                            <strong><p class="mb-1" id="k-report-reporter" >{{ $reports -> reporter }}</p></strong>
-                                                            <strong><p class="mb-1" id="k-report-contact" >{{ $reports -> contact }}</p></strong>
-                                                            <p class="text-muted mb-1" id="k-report-createdAt" >{{ $reports -> created_at->format('d-m-Y') }}</p>
-                                                            <p class="text-muted mb-4" id="k-report-address">{{ $reports->address }}</p>
+                                                            <strong><p class="mb-1" id="k-report-reporter" ></p></strong>
+                                                            <strong><p class="mb-1" id="k-report-contact" ></p></strong>
+                                                            <p class="text-muted mb-1" id="k-report-createdAt" ></p>
+                                                            <p class="text-muted mb-4" id="k-report-address"></p>
                                                         </div>
                                                         <div class="text">
-                                                        <h5 class="font-size-15 mb-1" id="k-report-eventdesc">{{ $reports->eventdesc ?? 'No Description Provided' }}</h5>
+                                                        <h5 class="font-size-15 mb-1" id="k-report-eventdesc"></h5>
                                                     </div>
-                                                    <img src="{{ asset('images/' . $reports->imagedir) }}" alt="No Image Sent" style="width: 200px;">
+                                                    <img src="{{ asset('images/') }}" alt="No Image Sent" style="width: 200px;">
                                                     <!-- Display deployment information -->
-                                                    <!-- Accumulate team names -->
-                                                    @php
-                                                        $deployedTeams = $reports->deployments->pluck('deployedRteam.team_name')->unique();
-                                                        $deployedBy = optional($reports->deployments->first())->deployedBy->name ?? 'N/A';
-                                                    @endphp
 
-                                                    @if($deployedTeams->isNotEmpty())
-                                                        <p class="mb-1 mt-2" id="k-deployed-team"><strong>Deployed Teams:</strong> {{ implode(', ', $deployedTeams->toArray()) }}</p>
-                                                    @endif
+
+                                                        <p class="mb-1 mt-2" id="k-deployed-team"><strong>Deployed Teams:</strong></p>
                                                     
                                                     <!-- Display deployed by -->
-                                                    <p class="mb-1" id="k-deployedBy"><strong>Deployed By:</strong> {{ $deployedBy }}</p>
+                                                    <p class="mb-1" id="k-deployedBy"><strong>Deployed By:</strong></p>
                                                 </div>
 
                                                 
                                             </div>
                                         <!-- end task card -->
-                                        @endif
-                                        @empty
-                                        @endforelse
                                         </div>
                                     </div>
                             </div>
@@ -162,51 +166,39 @@
                                     <div id="resolved-kanban">
                                         <div id="resolved-reports" class="pb-5 task-list">
                                         <!-- forelse Here to fetch data -->
-                                        @forelse($kanbanIncidents as $index => $reports)
-                                            @if($reports->status == 'resolved')
-                                            <div class="card task-box" id="resolved-rep-{{$index + 1}}" data-report-id='{{$reports->id}}' style="border-color: black; border-width: 1px; border-style: solid;">
+                                            <div class="card task-box" id="resolved-rep-" data-report-id='' style="border-color: black; border-width: 1px; border-style: solid;">
                                                 <div class="card-body">
                                                 <div class="dropdown float-end resolved-dropdown">
                                                                 <a href="#" class="dropdown-toggle arrow-none" data-bs-toggle="dropdown" aria-expanded="false">
                                                                     <i class="mdi mdi-dots-vertical m-0 text-muted h5"></i>
                                                                 </a>
                                                                 <div class="dropdown-menu dropdown-menu-end">
-                                                                    <a class="dropdown-item view-in-map" href="#" data-report-id="{{$reports->id}}">View in Map</a>
+                                                                    <a class="dropdown-item view-in-map" href="#" data-report-id="">View in Map</a>
                                                                     <a class="dropdown-item">View Complete Details</a>
                                                                 </div>
                                                             </div>
                                                     <div class="float-end ms-2">
-                                                        <span class="badge rounded-pill badge-soft-success font-size-12" id="k-rep-status" >{{ $reports->status }}</span>
+                                                        <span class="badge rounded-pill badge-soft-success font-size-12" id="k-rep-status" ></span>
                                                     </div>
                                                     <div>
-                                                        <h5 class="font-size-15"><a href="javascript: void(0);" class="text-dark" id="k-rep-type" >{{ $reports->modelref_incidenttype->cases }}</a></h5>
-                                                        <strong><p class="mb-1" id="k-report-reporter" >{{ $reports -> reporter }}</p></strong>
-                                                        <strong><p class="mb-1" id="k-report-contact" >{{ $reports -> contact }}</p></strong>
-                                                        <p class="text-muted mb-1" id="k-report-createdAt" >{{ $reports -> created_at->format('d-m-Y') }}</p>
-                                                        <p class="text-muted mb-4" id="k-report-address">{{ $reports->address }}</p>
+                                                        <h5 class="font-size-15"><a href="javascript: void(0);" class="text-dark" id="k-rep-type" ></a></h5>
+                                                        <strong><p class="mb-1" id="k-report-reporter" ></p></strong>
+                                                        <strong><p class="mb-1" id="k-report-contact" ></p></strong>
+                                                        <p class="text-muted mb-1" id="k-report-createdAt" ></p>
+                                                        <p class="text-muted mb-4" id="k-report-address"></p>
                                                     </div>
                                                     <div class="text">
-                                                        <h5 class="font-size-15 mb-1" id="k-report-eventdesc">{{ $reports->eventdesc ?? 'No Description Provided' }}</h5>
+                                                        <h5 class="font-size-15 mb-1" id="k-report-eventdesc"></h5>
                                                     </div>
-                                                    <img src="{{ asset('images/' . $reports->imagedir) }}" alt="No Image Sent" style="width: 200px;">
+                                                    <img src="" alt="No Image Sent" style="width: 200px;">
                                                     <!-- Display deployment information -->
                                                     <!-- Accumulate team names -->
-                                                    @php
-                                                        $deployedTeams = $reports->deployments->pluck('deployedRteam.team_name')->unique();
-                                                        $deployedBy = optional($reports->deployments->first())->deployedBy->name ?? 'N/A';
-                                                    @endphp
-
-                                                    @if($deployedTeams->isNotEmpty())
-                                                        <p class="mb-1 mt-2" id="k-deployed-team"><strong>Deployed Teams:</strong> {{ implode(', ', $deployedTeams->toArray()) }}</p>
-                                                    @endif
-                                                    
+                                                    <p class="mb-1 mt-2" id="k-deployed-team"><strong></strong></p>
                                                     <!-- Display deployed by -->
-                                                    <p class="mb-1" id="k-deployedBy"><strong>Deployed By:</strong> {{ $deployedBy }}</p>
+                                                    <p class="mb-1" id="k-deployedBy"><strong>Deployed By:</strong> </p>
                                                     </div>
                                             </div>
-                                            @endif
-                                            @empty
-                                            @endforelse
+                                            
                                         <!-- end task card -->
                                         </div>
                                     </div>
@@ -376,214 +368,201 @@
 </script>
 <!-- ./Map Implementation -->
 
-<!-- Kanban script -->
+<!-- New Kanban Script -->
 <script>
-    $(document).ready(function() {
-            /** ----------------- Fetch Table -------------------------- */
+    document.addEventListener('DOMContentLoaded', function(){
+    /** ----------------- Fetch Table -------------------------- */
     $(document).on('click', '.pagination a', function(event) {
-        event.preventDefault();
+            event.preventDefault();
 
-        let page = $(this).attr('href').split('page=')[1];
-        fetchTeamTbl(page);
-    });
+            let page = $(this).attr('href').split('page=')[1];
+            fetchTeamTbl(page);
+        });
 
-    function fetchTeamTbl(page) {
-        $.ajax({
-            url: '/reports-teamtbl?page=' + page,
-            success: function(data) {
-                $('#reports_teamtbl_container').html(data);
-            }
-    });
-    }
+        function fetchTeamTbl(page) {
+            $.ajax({
+                url: '/reports-teamtbl?page=' + page,
+                success: function(data) {
+                    $('#reports_teamtbl_container').html(data);
+                }
+        });
+        }
     /** ----------------- Fetch Table -------------------------- */
 
-    // maps Event Start
-    var markers = {}; // Object to hold your markers
+    /** ----------------- Fetch Kanban -------------------------- */
+    function fetchKanbanData() {
+        $.ajax({
+            url: '/kanban-data',
+            success: function(data) {
+                renderKanban(data);
+            },
+            error: function(error) {
+                console.error("Error fetching Kanban data:", error);
+            }
+        });
+    }
 
-    // Fetch and map incidents to markers upon DOM ready
-    fetchIncidentsAndMapMarkers();
+    function renderKanban(reports) {
+        $('#pending-reports').empty();
+        $('#ongoing-reports').empty();
+        $('#resolved-reports').empty();
 
-    // Handle dynamic "View in Map" clicks with event delegation
-    $('.kanban-boards').on('click', '.view-in-map', function() {
-        var reportId = $(this).data('report-id').toString(); // Convert to string for key comparison
+        reports.forEach(report => {
+            let deploymentInfoHtml = '';
 
-        if (markers[reportId]) {
-            var marker = markers[reportId];
-            map.flyTo(marker.getLatLng(), 15, { animate: true });
-            marker.openPopup();
-        } else {
-            console.log('Marker not found for report ID:', reportId);
-        }
-    });
-    // Maps Event END
+            if (report.status === 'ongoing' || report.status === 'resolved') {
+                const deployedTeams = report.deployments.teams.join(', ');
+                const deployedBy = report.deployments.deployedBy;
 
-    // Dragula Initialization and handle invalid moves
-        // Dragula Initialization and handle invalid moves
-        dragula([document.getElementById("pending-reports"), document.getElementById("ongoing-reports"), document.getElementById("resolved-reports")])
-                .on('drag', function(el, source) {
-                    // Store the source container ID to check during the drop
-                    el.dataset.sourceId = source.id;
-                    // Optionally, you can also store the next sibling of the dragged element for reference if the move is invalid
-                    el.dataset.nextSiblingId = el.nextElementSibling ? el.nextElementSibling.getAttribute('id') : null;
-                })
-
-        .on('drop', function(el, target, source, sibling) {
-            var reportId = el.getAttribute('data-report-id');
-            var sourceId = el.dataset.sourceId; // Retrieve the source container ID
-            var targetId = target.id;
-            var isValidMove = checkValidMove(sourceId, targetId);
-            var nextSiblingId = el.dataset.nextSiblingId ? document.getElementById(el.dataset.nextSiblingId) : null; // Get the stored next sibling
-
-            if (!isValidMove) {
-                swal.fire({
-                    icon: 'error',
-                    title: 'Invalid Move',
-                    text: 'Reports can only move one step forward in the Kanban board.'
-                });
-
-                // Check if there was a next sibling and return the report card to its original position
-                if (nextSiblingId) {
-                    source.insertBefore(el, nextSiblingId);
-                } else {
-                    // If there was no next sibling, the item was the last in the list, so just append it to the source container
-                    source.appendChild(el);
-                }
-                return;
+                deploymentInfoHtml = `
+                    <p class="mb-1 mt-2" id="k-deployed-team"><strong>Deployed Teams:</strong> ${deployedTeams}</p>
+                    <p class="mb-1" id="k-deployedBy"><strong>Deployed By:</strong> ${deployedBy}</p>
+                `;
             }
 
+            let reportHtml = `
+                <div class="card task-box" id="${report.status}-rep-${report.id}" data-report-id="${report.id}" style="border-color: black; border-width: 1px; border-style: solid;">
+                    <div class="card-body ${report.status}-cardBody">
+                        <div class="dropdown float-end ${report.status}-dropdown">
+                            <a href="#" class="dropdown-toggle arrow-none" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="mdi mdi-dots-vertical m-0 text-muted h5"></i>
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-end">
+                                <a class="dropdown-item view-in-map" href="#" data-report-id="${report.id}">View in Map</a>
+                                ${report.status === 'pending' ? `<a class="dropdown-item edittask-details edit-preport-details" href="#" data-report-id="${report.id}" data-bs-toggle="modal" data-bs-target="#edit_preport_modal">Edit</a>` : ''}
+                                ${report.status === 'pending' ? `<a class="dropdown-item dismiss-rep" data-report-id="${report.id}">Dismiss Report</a>` : ''}
+                            </div>
+                        </div>
+                        <div class="float-end ms-2">
+                            <span class="badge rounded-pill ${getBadgeClass(report.status)} font-size-12" id="k-rep-status">${report.status}</span>
+                        </div>
+                        <div>
+                            <h5 class="font-size-15"><a href="javascript: void(0);" class="text-dark" id="k-rep-type">${report.case_type}</a></h5>
+                            <strong><p class="mb-1" id="k-report-reporter">${report.reporter}</p></strong>
+                            <strong><p class="mb-1" id="k-report-contact">${report.contact}</p></strong>
+                            <p class="text-muted mb-1" id="k-report-createdAt">${report.created_at}</p>
+                            <p class="text-muted mb-4" id="k-report-address">${report.address}</p>
+                        </div>
+                        <div class="text">
+                            <h5 class="font-size-15 mb-1" id="k-report-eventdesc">${report.eventdesc}</h5>
+                        </div>
+                        ${report.image_url ? `<img src="${report.image_url}" alt="No Image Sent" style="width: 200px;">` : ''}
+                        ${deploymentInfoHtml}
+                    </div>
+                </div>
+            `;
+
+            if (report.status === 'pending') {
+                $('#pending-reports').append(reportHtml);
+            } else if (report.status === 'ongoing') {
+                $('#ongoing-reports').append(reportHtml);
+            } else if (report.status === 'resolved') {
+                $('#resolved-reports').append(reportHtml);
+            }
+        });
+
+        initDragula();
+    }
+
+    function initDragula() {
+        dragula([document.getElementById("pending-reports"), document.getElementById("ongoing-reports"), document.getElementById("resolved-reports")])
+            .on('drag', function(el, source) {
+                el.dataset.sourceId = source.id;
+                el.dataset.nextSiblingId = el.nextElementSibling ? el.nextElementSibling.getAttribute('id') : null;
+            })
+            .on('drop', function(el, target, source, sibling) {
+                var reportId = el.getAttribute('data-report-id');
+                var sourceId = el.dataset.sourceId;
+                var targetId = target.id;
+                var isValidMove = checkValidMove(sourceId, targetId);
+                var nextSiblingId = el.dataset.nextSiblingId ? document.getElementById(el.dataset.nextSiblingId) : null;
+
+                if (!isValidMove) {
+                    swal.fire({
+                        icon: 'error',
+                        title: 'Invalid Move',
+                        text: 'Reports can only move one step forward in the Kanban board.'
+                    });
+
+                    if (nextSiblingId) {
+                        source.insertBefore(el, nextSiblingId);
+                    } else {
+                        source.appendChild(el);
+                    }
+                    return;
+                }
+
                 if (targetId === 'ongoing-reports') {
-                    // Handle logic for moving to 'Ongoing'
                     handleMoveToOngoing(reportId, el);
                 } else if (targetId === 'resolved-reports') {
-                    // Handle logic for moving to 'Resolved'
                     handleMoveToResolved(reportId);
                 }
-                // No action needed for invalid moves as they're handled above
             });
-        // Dragula Initialization and handle invalid moves END
+    }
 
-            
     function checkValidMove(sourceId, targetId) {
-        // Define valid transitions
         const transitions = {
             'pending-reports': 'ongoing-reports',
-            'ongoing-reports': 'resolved-reports'
+            'ongoing-reports': 'resolved-reports',
         };
-
-        // Check if the move is valid based on the defined transitions
         return transitions[sourceId] === targetId;
+    }
+
+    function fetchKanbanData() { 
+        fetch('/kanban-data') 
+            .then(response => response.json())
+            .then(data => renderKanban(data))
+            .catch(error => console.error("Error fetching Kanban data:", error));
+    }
+
+    /** ----------------- Pending to Ongoing -------------------------- */
+    function handleMoveToOngoing(reportId, el) {
+        $('#select_rteam_modal').data('report-id', reportId).modal('show');
+
+        $('#select_rteam_modal').off('hide.bs.modal').on('hide.bs.modal', function() {
+            if (!$('#select_rteam_modal').data('deploymentCompleted')) {
+                revertReportCardToPending(reportId, el);
+            }
+        });
+
+        $('#assign-rteam').select2({ dropdownParent: $('#select_rteam_modal') });
+
+        $('#select_rteam_form').off('submit').on('submit', function(e) {
+            e.preventDefault();
+            var selectedRteams = $('#assign-rteam').val();
+            $('#select_rteam_modal').data('deploymentCompleted', true);
+
+            $.ajax({
+                url: '/kanban-report-deploy',
+                type: 'POST',
+                data: {
+                    _token: $('meta[name="csrf-token"]').attr('content'),
+                    reportId: reportId,
+                    newStatus: 'ongoing',
+                    deployedRteam: selectedRteams
+                },
+                success: function(response) {
+                    fetchKanbanData(); // Refresh Kanban board
+                    $('#select_rteam_modal').modal('hide');
+                    fetchTeamTbl();
+                    fetchAvailableTeams()
+                },
+                error: function(error) {
+                    console.error('Error:', error);
+                }
+            });
+        });
     }
 
     function revertReportCardToPending(reportId, el) {
         var reportCard = $(`div[data-report-id="${reportId}"]`);
         reportCard.removeAttr('id').attr('id', `pending-rep-${reportId}`);
         $('#pending-reports').append(reportCard);
-        // Reset any ongoing-specific attributes or classes as necessary
     }
+    /** ----------------- Pending to Ongoing -------------------------- */
 
-    function handleMoveToOngoing(reportId, el) {
-        console.log(`Preparing to move report ${reportId} to Ongoing.`);
-        $('#select_rteam_modal').data('report-id', reportId).modal('show');
-
-        $('#select_rteam_modal').off('hide.bs.modal').on('hide.bs.modal', function () {
-            if (!$('#select_rteam_modal').data('deploymentCompleted')) {
-                revertReportCardToPending(reportId, el);
-            }
-        });
-
-        // Handle when a report is moved to 'Ongoing'
-    $('#assign-rteam').select2({ dropdownParent: $('#select_rteam_modal') });
-
-    // Handle the report status update and team deployment
-    $('#select_rteam_form').off('submit').on('submit', function(e) {
-        e.preventDefault();
-        var selectedRteams = $('#assign-rteam').val();
-        $('#select_rteam_modal').data('deploymentCompleted', true);
-        $.ajax({
-            url: '/kanban-report-deploy',
-            type: 'POST',
-            data: {
-                _token: $('meta[name="csrf-token"]').attr('content'),
-                reportId: reportId,
-                newStatus: 'ongoing',
-                deployedRteam: selectedRteams
-            },
-            success: function(response) {
-                console.log('Report and deployment updated successfully.');
-
-            // Select the report card based on its current ID
-            var reportCard = $(`#pending-rep-${reportId}`).detach();
-            
-            // Update the report card's ID to reflect its new 'Ongoing' status
-            reportCard.attr('id', `inprog-rep-${reportId}`);
-
-            // Remove any existing dropdown
-            reportCard.find('.dropdown').remove();
-
-            // Append new dropdown specific for 'ongoing'
-            var ongoingDropdownHtml = `
-                <div class="dropdown float-end ongoing-dropdown">
-                    <a href="#" class="dropdown-toggle arrow-none" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="mdi mdi-dots-vertical m-0 text-muted h5"></i>
-                    </a>
-                    <div class="dropdown-menu dropdown-menu-end">
-                        <a class="dropdown-item view-in-map" href="#" data-report-id="${reportId}">View in Map</a>
-                    </div>
-                </div>
-            `;
-            reportCard.find('.card-body').prepend(ongoingDropdownHtml);
-                // Update the status badge
-                reportCard.find('.badge').removeClass('badge-soft-secondary').addClass('badge-soft-warning').text('Ongoing');
-                if (reportCard.find("#k-deployed-team").length) {
-                    reportCard.find("#k-deployed-team").html(`<strong>Deployed Teams:</strong> ${response.deployedTeams.join(', ')}`);
-                } else {
-                    // If not, append them
-                    var deployedTeamsHtml = `<p class="mb-1 mt-2" id="k-deployed-team"><strong>Deployed Teams:</strong> ${response.deployedTeams.join(', ')}</p>`;
-                    reportCard.find('.card-body').append(deployedTeamsHtml);
-                }
-
-                if (reportCard.find("#k-deployedBy").length) {
-                    reportCard.find("#k-deployedBy").html(`<strong>Deployed By:</strong> ${response.deployedBy}`);
-                } else {
-                    var deployedByHtml = `<p class="mb-1" id="k-deployedBy"><strong>Deployed By:</strong> ${response.deployedBy}</p>`;
-                    reportCard.find('.card-body').append(deployedByHtml);
-                }
-                
-                // Append to ongoing reports
-                $('#ongoing-reports').append(reportCard);
-
-                // Reinitialize select2 for the response teams
-                fetchAvailableTeams();
-
-                // Optionally, update the markers if the incident location/marker details could change
-                fetchIncidentsAndMapMarkers();
-                fetchTeamTbl();
-                // Close the modal
-                $('#select_rteam_modal').modal('hide');
-
-                console.log('Report ID that is successfully updated is:' + reportId);
-            },
-            error: function(error) {
-                console.error('Error:', error);
-            }
-        });
-    });
-    // Handle the Pending to ongoin and team deployment END
-    }
-
-    
-    
-    // handle ongoing to resolved
+    /** ----------------- Ongoing to Resolved -------------------------- */
     function handleMoveToResolved(reportId) {
-        console.log(`Preparing to move report ${reportId} to Resolved.`);
-
-        // Now correctly identifying the report card
-        var reportCard = $(`#inprog-rep-${reportId}`);
-        if (!reportCard.length) {
-            console.error('Report card not found:', reportId);
-            return; // Exit if the report card cannot be found
-        }
-
         $.ajax({
             url: '/kanban-report-resolve',
             type: 'POST',
@@ -593,60 +572,32 @@
                 newStatus: 'resolved'
             },
             success: function(response) {
-                console.log('Report status updated to resolved.');
-                // Since the report card is already selected, no need to re-select or detach it
-
-                // Remove any existing dropdown
-                reportCard.find('.dropdown').remove();
-
-                // Append the 'Resolved' specific dropdown
-                var resolvedDropdownHtml = `
-                    <div class="dropdown float-end resolved-dropdown">
-                        <a href="#" class="dropdown-toggle arrow-none" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="mdi mdi-dots-vertical m-0 text-muted h5"></i>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-end">
-                            <a class="dropdown-item view-in-map" href="#" data-report-id="${reportId}">View in Map</a>
-                            <a class="dropdown-item">View Complete Details</a>
-                        </div>
-                    </div>
-                `;
-                reportCard.find('.card-body').prepend(resolvedDropdownHtml);
-
-                // Update the status badge to 'Resolved'
-                reportCard.find('.badge').removeClass('badge-soft-warning').addClass('badge-soft-success').text('Resolved');
-
-                // Move the updated report card to the "resolved-reports" column
-                $('#resolved-reports').append(reportCard);
-
-                // Optionally, update the markers if the incident location/marker details could change
-                fetchIncidentsAndMapMarkers();
+                fetchKanbanData(); // Refresh Kanban board
             },
             error: function(error) {
                 console.error('Error:', error);
             }
         });
     }
+    /** ----------------- Ongoing to Resolved -------------------------- */
 
+    fetchKanbanData(); // Fetch Kanban data on page load
 
-    // Handle the move to 'Resolved' status
-    
-    
-    function fetchAvailableTeams() {
-        $.ajax({
-            url: '/get-available-teams',
-            success: function(response) {
-                var $select = $('#assign-rteam');
-                $select.empty(); // Clear current options
-                response.available_RTeams.forEach(team => {
-                    var newOption = new Option(team.team_name, team.id, false, false);
-                    $select.append(newOption).trigger('change');
-                });
-                // Reinitialize select2
-                $select.select2({ dropdownParent: $('#select_rteam_modal') });
-            }
-        });
+    function getBadgeClass(status) {
+        switch(status) {
+            case 'pending': return 'badge-soft-secondary';
+            case 'ongoing': return 'badge-soft-warning';
+            case 'resolved': return 'badge-soft-success';
+            default: return '';
+        }
     }
+
+
+
+    var markers = {}; // Store individual markers
+    var markersCluster = L.markerClusterGroup(); // Initialize marker cluster group
+
+    fetchIncidentsAndMapMarkers(); // Call this on page load
 
     function fetchIncidentsAndMapMarkers() {
         fetch('/fetch-incidents-map')
@@ -656,26 +607,72 @@
                 var popupContent = `<strong>Reporter:</strong> ${incident.reporter}<br>
                                         <strong>Contact Number:</strong> ${incident.contact}<br>
                                         <strong>Case:</strong> ${incident.case_type}<br>
-                                        <strong>Description:</strong> ${incident.eventdesc}
-                                        ID: ${incident.id}`;
+                                        <strong>Description:</strong> ${incident.eventdesc}`;
 
                 if (incident.image_url) {
-                    popupContent += `<br><img src="${incident.image_url}" style="max-width: 125px;">`; // Adjust styling as needed
+                    popupContent += `<br><img src="${incident.image_url}" style="max-width: 125px;">`;
                 }
 
-                const marker = L.marker([parseFloat(incident.lat), parseFloat(incident.long)])
-                                .addTo(map)
+                // Determine the icon based on the incident type
+                var iconUrl = '/markerIcons/default.png';
+                var incidentType = incident.case_type.toLowerCase();
+
+                if (incidentType.includes('mountain search')) {
+                    iconUrl = '/markerIcons/mountain-marker.png';
+                } else if (incidentType.includes('water search')) {
+                    iconUrl = '/markerIcons/water-marker.png';
+                } else if (incidentType.includes('trauma case')) {
+                    iconUrl = '/markerIcons/trauma-marker.png';
+                } else if (incidentType.includes('medical case')) {
+                    iconUrl = '/markerIcons/medical-marker.png';
+                }
+
+                var customIcon = L.icon({
+                    iconUrl: iconUrl,
+                    iconSize: [75, 75],
+                    iconAnchor: [37, 41],
+                    popupAnchor: [1, -34]
+                });
+
+                const marker = L.marker([parseFloat(incident.lat), parseFloat(incident.long)], { icon: customIcon })
                                 .bindPopup(popupContent);
 
-                markers[incident.id.toString()] = marker; // Ensure key is a string
+                markersCluster.addLayer(marker); // Add marker to cluster
+                markers[incident.id.toString()] = marker; // Store marker for direct access
             });
+
+            map.addLayer(markersCluster); // Add cluster to map
         })
         .catch(error => console.log('Error fetching incidents:', error));
     }
 
+    // Handle "View in Map" clicks directly to a marker
+    $('.kanban-boards').on('click', '.view-in-map', function() {
+        var reportId = $(this).data('report-id').toString();
 
-        $(document).on('click', '.dismiss-rep', function() {
-        var reportId = $(this).attr('data-report-id'); // Make sure this is correctly fetching the updated ID
+        if (markers[reportId]) {
+            var marker = markers[reportId];
+            markersCluster.removeLayer(marker); // Temporarily remove from cluster
+
+            map.flyTo(marker.getLatLng(), 18, { animate: true }); // Zoom into marker
+            marker.openPopup(); // Show popup
+
+            // Add marker directly to the map temporarily
+            marker.addTo(map);
+
+            setTimeout(() => {
+                map.removeLayer(marker); // Remove from the map
+                markersCluster.addLayer(marker); // Re-add to cluster
+            }, 5000); // Re-add after 5s
+        } else {
+            console.log('Marker not found for report ID:', reportId);
+        }
+    });
+
+    /** ----------------- Delete Report -------------------------- */
+    $(document).on('click', '.dismiss-rep', function() {
+        var reportId = $(this).attr('data-report-id');
+
         swal.fire({
             title: 'Are you sure?',
             text: 'You will not be able to recover this report!',
@@ -692,12 +689,21 @@
                     type: 'POST',
                     data: {
                         _token: $('meta[name="csrf-token"]').attr('content'),
-                        reportId: reportId, // Use the fetched report ID
-                        newStatus: 'dismissed',
+                        reportId: reportId,
+                        newStatus: 'dismissed'
                     },
                     success: function(response) {
-                        console.log(`The recently updated report to ongoing is: ${reportId}`);
+                        console.log(`The report dismissed: ${reportId}`);
                         $(`div[data-report-id="${reportId}"]`).remove();
+
+                        // Remove the marker from the map and the cluster
+                        if (markers[reportId]) {
+                            markersCluster.removeLayer(markers[reportId]);
+                            delete markers[reportId];
+                        }
+
+                        fetchKanbanData(); // Refresh the Kanban board
+
                         swal.fire({
                             icon: 'success',
                             title: 'Report dismissed successfully',
@@ -712,83 +718,153 @@
             }
         });
     });
-    }); //DOM
+
+    /** ----------------- Fetch Map Markers -------------------------- */
+       /** ----------------- Fetch Available Teams -------------------------- */
+       function fetchAvailableTeams() {
+        $.ajax({
+            url: '/get-available-teams',
+            type: 'GET',
+            success: function(response) {
+                const selectRTeam = $('#assign-rteam');
+                selectRTeam.empty(); // Clear the existing options
+
+                if (response.available_RTeams.length > 0) {
+                    response.available_RTeams.forEach(team => {
+                        const option = `<option value="${team.id}">${team.team_name}</option>`;
+                        selectRTeam.append(option); // Add new options
+                    });
+                } else {
+                    const noTeamsOption = `<option value="" hidden>No Response Teams Available</option>`;
+                    selectRTeam.append(noTeamsOption);
+                }
+
+                selectRTeam.trigger('change'); // Refresh the select dropdown
+            },
+            error: function(error) {
+                console.error('Error fetching available teams:', error);
+            }
+        });
+    }
+    /** ----------------- Fetch Available Teams -------------------------- */
+
+    // Handle toggle switch changes
+    $(document).on('change', '.status-toggle', function() {
+        const teamId = $(this).data('team-id');
+        const newStatus = $(this).is(':checked') ? 'available' : 'busy';
+
+        $.ajax({
+            url: `/update-team-status/${teamId}`,
+            type: 'POST',
+            data: {
+                _token: $('meta[name="csrf-token"]').attr('content'),
+                status: newStatus
+            },
+            success: function(response) {
+                console.log('Team status updated successfully:', response);
+                fetchTeamTbl(); // Refresh the team table
+                fetchAvailableTeams()
+                // Update the label text dynamically
+                $(this).siblings('.form-check-label').text(newStatus.charAt(0).toUpperCase() + newStatus.slice(1));
+            }.bind(this), // Bind `this` context to access the switch element
+
+
+
+            error: function(error) {
+                console.error('Error updating team status:', error);
+            }
+        });
+    });
+
+    $('#refetch-data').on('click', function() {
+        // Clear all markers from the cluster and map
+        markersCluster.clearLayers();
+        markers = {}; // Clear the individual markers as well
+
+        // Fetch incidents and map markers again
+        fetchIncidentsAndMapMarkers();
+        swal.fire({
+            icon: 'success',
+            title: 'Data Reinitialized Successfully',
+            showConfirmButton: false,
+            timer: 1500
+        });
+    });
+    });//DOM
 </script>
-<!-- kanban end -->
+<!-- New Kanban Script -->
 
 <!-- START Edit Pending Report Modal -->
 <script>
-    $(document).ready(function() {
-        $('#edit-preport-incident').select2({
-                dropdownParent: $('#edit_preport_modal')
-            });
-        $('.edit-preport-details').click(function() {
-            $('#edit_preport_modal').modal('toggle');
+$(document).ready(function() {
+    // Initialize the select2 dropdown inside the modal
+    $('#edit-preport-incident').select2({
+        dropdownParent: $('#edit_preport_modal')
+    });
+
+    // Attach event delegation for opening the modal and fetching report details
+    $(document).on('click', '.edit-preport-details', function() {
+        var reportId = $(this).data('report-id');
+        console.log('Report ID on edit click:', reportId); // Debugging line
+
+        // Fetch report details via AJAX
+        $.ajax({
+            url: '/get-preport-details/' + reportId,
+            type: 'GET',
+            success: function(data) {
+                // Populate the modal form with fetched data
+                $('#edit-preport-report-id').val(reportId);
+                $('#edit-preport-name').val(data.reporter);
+                $('#edit-preport-contact').val(data.contact);
+                $('#edit-preport-address').val(data.address);
+                $('#edit-preport-eventdesc').val(data.eventdesc);
+
+                // Update the select2 dropdown
+                $('#edit-preport-incident').val(data.incident).trigger('change');
+
+                // Update the image path correctly
+                var imagePath = data.image_url || '/images/no-image.png'; // Fallback if no image
+                $('#edit-preport-image').attr('src', imagePath);
+
+                // Show the modal
+                $('#edit_preport_modal').modal('show');
+            },
+            error: function(error) {
+                console.error('Error fetching report details:', error);
+            }
         });
+    });
 
-        $('.edit-preport-details').on('click', function() {
-            var reportId = $(this).data('report-id');
-            console.log('Report ID on edit click:', reportId); // Debugging line
-            $.ajax({
-                url: '/get-preport-details/' + reportId,
-                type: 'GET',
-                success: function(data) {
-                    // Assuming 'data' contains the report details
-                    $('#edit-preport-report-id').val(reportId);
-                    $('#edit-preport-name').val(data.reporter);
-                    $('#edit-preport-contact').val(data.contact);
-                    $('#edit-preport-address').val(data.address);
-                    $('#edit-preport-eventdesc').val(data.eventdesc);
-                    
-                    // Set the Select2 dropdown value and trigger change for Select2 to update
-                    $('#edit-preport-incident').val(data.incident).trigger('change');
-                // Ensure the image path is correct. Add a leading slash if necessary.
-                    var imagePath = '/images/' + data.imagedir; // Adjust according to your actual images directory
-                    $('#edit-preport-image').attr('src', imagePath);
+    // Handle form submission for editing the report
+    $('#edit_preport_form').on('submit', function(e) {
+        e.preventDefault(); // Prevent default form submission
 
-                    // Store the report ID for the update action
-                    $('#edit-preport-modal').data('report-id', reportId);
-
-                    console.log('Fetched report ID:', reportId);
-                },
-                error: function(error) {
-                    console.log(error);
-                }
-            });
-        }),
-    
-        $('#edit_preport_form').on('submit', function(e) {
-        e.preventDefault(); // Prevent the default form submission
         var reportId = $('#edit-preport-report-id').val();
 
-
         var formData = {
-            // Since CSRF token is included in the form, grab it from there
             _token: $('input[name="_token"]').val(),
             address: $('#edit-preport-address').val(),
             eventdesc: $('#edit-preport-eventdesc').val(),
             incident: $('#edit-preport-incident').val()
         };
-        console.log('Updating report:', formData, 'ID:', reportId);
+
         $.ajax({
             url: '/update-preport-details/' + reportId,
             type: 'POST',
             data: formData,
             success: function(response) {
-                console.log('Report updated successfully');
-                // Close the modal
-                 // Assuming your report cards have IDs structured like "pending-rep-{reportId}"
-                  var reportCardSelector = '#pending-rep-' + reportId;
+                console.log('Report updated successfully:', response);
 
-                // Update the Kanban card with new values
+                // Update the corresponding Kanban card
+                var reportCardSelector = '#pending-rep-' + reportId;
+
                 $(reportCardSelector).find('#k-report-address').text(formData.address);
                 $(reportCardSelector).find('#k-report-eventdesc').text(formData.eventdesc);
 
-                // Update the incident type displayed on the card. This requires fetching the text of the selected option.
                 var incidentTypeName = $('#edit-preport-incident option:selected').text();
                 $(reportCardSelector).find('#k-rep-type').text(incidentTypeName);
 
-                // Close the modal
+                // Close the modal and reset the form
                 $('#edit_preport_modal').modal('hide');
                 $('#edit_preport_form').trigger('reset');
 
@@ -801,23 +877,27 @@
             },
             error: function(error) {
                 console.error('Error updating report:', error);
-                // Handle error
             }
         });
     });
-    });
+});
 </script>
+
 <!-- Edit Pending Report Modal END -->
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         Echo.channel('reports')
             .listen('AddReport', (e) => {
-                console.log('Incident report event received:', e);
+                setTimeout(function() {
+                    console.log('Incident report event received:', e);
+                    toastr.warning('New Report has been Submitted', 'REMINDER!');
+                }, 7000);
             });
     });
 </script>
-
+<!-- Bootstrap Toasts Js -->
+<script src="{{url('assets/libs/toastr/build/toastr.min.js')}}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.33/moment-timezone-with-data-10-year-range.min.js"></script>
 <script src="{{url('assets/js/maps/allBarangay.js')}}"></script>    
@@ -831,4 +911,6 @@
 <script src="{{url('assets/js/maps/Control-Geocoder.js') }}"></script>
 <!-- leaflet locate control -->
 <script src="{{url('assets/js/maps/L.Control.Locate.min.js') }}"></script>
+
+<script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster-src.js"></script>
 @endsection

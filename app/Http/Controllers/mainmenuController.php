@@ -13,6 +13,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
 use Spatie\Permission\Models\Role;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Hash;
 class mainmenuController extends Controller
 {
     public function __construct()
@@ -114,26 +115,41 @@ class mainmenuController extends Controller
                             ->where('status', 'available')
                             ->get();
         $rteams = responseTeam_model::select('id', 'team_name', 'status')
+                    ->where('status', 'available')
+                    ->orWhere('status', 'busy')
                     ->orderBy('status', 'asc')
-                    ->paginate(5);
-        // Adjusting this query to eagerly load related deployment, team, and admin
-        $kanbanIncidents = incident_reports::with(['modelref_incidenttype', 'deployments.deployedRteam', 'deployments.deployedBy'])
-                            ->orderBy('created_at', 'asc')
-                            ->get();
+                    ->paginate(3);
 
-        return view('admin.reports', compact('kanbanIncidents', 'incident_types', 'available_RTeams', 'rteams'));
+        return view('admin.reports', compact('incident_types', 'available_RTeams', 'rteams'));
     }
 
-    public function fetchNewIncidents() {
-        $pendingReports = incident_reports::with(['modelref_incidenttype'])
-                            ->where('status', 'pending')
+    public function fetchKanbanData() {
+        $kanbanIncidents = incident_reports::with(['modelref_incidenttype', 'deployments.deployedRteam', 'deployments.deployedBy'])
+                            ->whereDate('created_at', Carbon::today())
+                            ->orderBy('created_at', 'asc')
                             ->get();
-        return response()->json($pendingReports);
-    }    
     
+        // Convert to a JSON-friendly structure
+        $kanbanIncidents = $kanbanIncidents->map(function($report) {
+            return [
+                'id' => $report->id,
+                'status' => $report->status,
+                'reporter' => $report->reporter,
+                'contact' => $report->contact,
+                'created_at' => $report->created_at->format('d-m-Y'),
+                'address' => $report->address,
+                'eventdesc' => $report->eventdesc ?? 'No Description Provided',
+                'case_type' => $report->modelref_incidenttype->cases ?? 'N/A',
+                'image_url' => $report->imagedir ? asset('images/' . $report->imagedir) : null,
+                'deployments' => [
+                    'teams' => $report->deployments->pluck('deployedRteam.team_name')->unique()->toArray(),
+                    'deployedBy' => optional($report->deployments->first())->deployedBy->name ?? 'N/A',
+                ],
+            ];
+        });
     
-    
-    
+        return response()->json($kanbanIncidents);
+    }
 
     public function  getAvailableTeams(){
         $available_RTeams = responseTeam_model::select('id', 'team_name')
@@ -141,6 +157,7 @@ class mainmenuController extends Controller
                             ->get();
         return response()->json(['available_RTeams' => $available_RTeams]);
     }
+
     public function getDeploymentDetails(Request $request)
 {
     $reportId = $request->reportId;
@@ -166,8 +183,11 @@ class mainmenuController extends Controller
     public function fetchIncidentsforMap()
     {
         $incidentsForMap = incident_reports::with(['modelref_incidenttype'])
-        ->get(['id', 'reporter', 'contact','lat', 'long', 'eventdesc', 'imagedir', 'incident'
-        ]);
+        ->where('status', 'pending')
+        ->orWhere('status', 'ongoing')
+        ->orWhere('status', 'resolved')
+        ->whereDate('created_at', Carbon::today())
+        ->get(['id', 'reporter', 'contact','lat', 'long', 'eventdesc', 'imagedir', 'incident']);
     
         // Adjusting image URL
         $incidentsForMap->transform(function ($incident) {
@@ -239,9 +259,9 @@ class mainmenuController extends Controller
     
     
 
-    public function getPreportDetails($id){
+    public function getPReportDetails($id) {
         $report = incident_reports::find($id);
-
+    
         if ($report) {
             return response()->json($report);
         } else {
@@ -249,8 +269,7 @@ class mainmenuController extends Controller
         }
     }
 
-    public function updatePReportDetails(Request $request, $id)
-    {
+    public function updatePReportDetails(Request $request, $id) {
         $report = incident_reports::find($id);
         if (!$report) {
             return response()->json(['message' => 'Report not found.'], 404);
@@ -266,7 +285,7 @@ class mainmenuController extends Controller
         // Update the report with validated data
         $report->address = $validated['address'];
         $report->eventdesc = $validated['eventdesc'];
-        $report->incident = $validated['incident']; // Assuming 'incident' is the ID of the incident type
+        $report->incident = $validated['incident'];
         $report->save();
     
         return response()->json(['message' => 'Report updated successfully.']);
@@ -274,10 +293,30 @@ class mainmenuController extends Controller
     
     public function teamstblReports(){
         $rteams = responseTeam_model::select('id', 'team_name', 'status')
+                    ->where('status', 'available')
+                    ->orWhere('status', 'busy')
                     ->orderBy('status', 'asc')
-                    ->paginate(5);
+                    ->paginate(3);
         return view('partials.reports_teamtbl', compact('rteams'))->render();
     }
+
+    public function updateTeamStatus(Request $request, $id) {
+        try {
+            $team = responseTeam_model::findOrFail($id);
+    
+            $newStatus = $request->input('status');
+    
+            // Update only the team's status
+            $team->status = $newStatus;
+            $team->updated_by = auth()->user()->id; // Log the ID of the user making the change
+            $team->save();
+    
+            return response()->json(['success' => 'Team status updated successfully']);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to update team status: ' . $e->getMessage()], 500);
+        }
+    }
+    
 
     public function dismissReportKanban(Request $request){
         $report = incident_reports::find($request->reportId);
@@ -294,9 +333,19 @@ class mainmenuController extends Controller
 
 
 
-    /**-------------------------- Response Team ------------------------ */
+/**-------------------------- Response Team ------------------------ */
     public function teams_view(){
-        $users = User::select('id', 'name')->get();
+        $allusers = User::select('id', 'name')->get();
+        $userswithteam = rtMembers_model::pluck('member_id');
+
+        $vacantusers = User::select('id', 'name')
+                    ->whereNotIn('id', $userswithteam)
+                    ->get();
+
+        $vacantmembers = $vacantusers->filter(function ($user) {
+            return $user->hasPermissionTo('readAndwrite-routing');
+            })->values();
+
         $teams = responseTeam_model::select('id', 'team_name')->get();
 
         $rtmems = rtMembers_model::with(['createdByUser:id,name', 'updatedByUser:id,name', 'teamRefTeams:id,team_name', 'member:id,name'])
@@ -309,8 +358,17 @@ class mainmenuController extends Controller
                     ->orderBy('created_at', 'desc')
                     ->paginate(5);
 
-        return view('admin.responseTeams', compact('users', 'teams', 'rtmems', 'forteams'));
+        return view('admin.responseTeams', compact('vacantmembers', 'teams', 'rtmems', 'forteams'));
     }
+
+    public function fetchTeamMembers($teamId) {
+        $teamMembers = rtMembers_model::with(['member:id,name'])
+                                      ->where('team_id', $teamId)
+                                      ->get();
+    
+        return view('partials.tmembersModal', compact('teamMembers'))->render();
+    }
+    
 
     public function fetchTeamsMembersTbl(){
         $rtmems = rtMembers_model::with(['createdByUser:id,name', 'updatedByUser:id,name', 'teamRefTeams:id,team_name', 'member:id,name'])
@@ -381,69 +439,69 @@ class mainmenuController extends Controller
         } catch (\Exception $e) {
         return response()->json(['error' => 'Failed to add team member/s: ' . $e->getMessage()], 500);
     }
-}
-    //adding team meber END
-
-    
-    //delete member START
-    public function deleteRTmember($id){
-        $del_rt_member = rtMembers_model::find($id);
-        if ($del_rt_member) {
-            $del_rt_member->delete();
-            return response()->json(['success' => 'Team Disbanded Successfully']);
-        } else {
-            return response()->json(['error' => 'Failed to Disband Team: ']);
-        }
     }
-    //delete member END
+        //adding team meber END
 
-    //delete team START
-    public function deleteTeams($id){
-        $del_teams = responseTeam_model::find($id);
-        if ($del_teams) {
-            $del_teams->delete();
-            return response()->json(['success' => 'Team Deleted Successfully']);
-        } else {
-            return response()->json(['error' => 'Failed to Delete Team: ']);
-        }
-    }
-    //delete team END
-
-    public function fetchTeamsOptions(){
-        $teams = responseTeam_model::select('id', 'team_name')->get();
-        return response()->json(['teams' => $teams]);
-    }
-
-    //for edit team
-    public function getTeamID($id){
-        $teamid = responseTeam_model::findOrFail($id);
-        return response()->json($teamid);
-    }
-
-    public function updateTeam(Request $request, $id) {
-        try{
-            $team = responseTeam_model::findOrFail($id);
-            $team->team_name = $request->input('team_name');
-            $team->status = $request->input('status');
-            $team->updated_by = Auth()->user()->id;
-            $team->save();
         
-            return response()->json(['success' => 'Team Updated Successfully']);
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Failed to update team: ' . $e->getMessage()], 500);
+        //delete member START
+        public function deleteRTmember($id){
+            $del_rt_member = rtMembers_model::find($id);
+            if ($del_rt_member) {
+                $del_rt_member->delete();
+                return response()->json(['success' => 'Team Disbanded Successfully']);
+            } else {
+                return response()->json(['error' => 'Failed to Disband Team: ']);
+            }
         }
-    }
-    //for edit team
+        //delete member END
 
-    public function getRTmemberID($id){
-        try {
-            $rt_member = rtMembers_model::with(['createdByUser:id,name', 'teamRefTeams:id,team_name', 'member:id,name'])
-                         ->findOrFail($id);
-            return response()->json($rt_member);
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Failed to fetch RT member: ' . $e->getMessage()], 500);
+        //delete team START
+        public function deleteTeams($id){
+            $del_teams = responseTeam_model::find($id);
+            if ($del_teams) {
+                $del_teams->delete();
+                return response()->json(['success' => 'Team Deleted Successfully']);
+            } else {
+                return response()->json(['error' => 'Failed to Delete Team: ']);
+            }
         }
-    }
+        //delete team END
+
+        public function fetchTeamsOptions(){
+            $teams = responseTeam_model::select('id', 'team_name')->get();
+            return response()->json(['teams' => $teams]);
+        }
+
+        //for edit team
+        public function getTeamID($id){
+            $teamid = responseTeam_model::findOrFail($id);
+            return response()->json($teamid);
+        }
+
+        public function updateTeam(Request $request, $id) {
+            try{
+                $team = responseTeam_model::findOrFail($id);
+                $team->team_name = $request->input('team_name');
+                $team->status = $request->input('status');
+                $team->updated_by = Auth()->user()->id;
+                $team->save();
+            
+                return response()->json(['success' => 'Team Updated Successfully']);
+            } catch (\Exception $e) {
+                return response()->json(['error' => 'Failed to update team: ' . $e->getMessage()], 500);
+            }
+        }
+        //for edit team
+
+        public function getRTmemberID($id){
+            try {
+                $rt_member = rtMembers_model::with(['createdByUser:id,name', 'teamRefTeams:id,team_name', 'member:id,name'])
+                            ->findOrFail($id);
+                return response()->json($rt_member);
+            } catch (\Exception $e) {
+                return response()->json(['error' => 'Failed to fetch RT member: ' . $e->getMessage()], 500);
+            }
+        }
 /**-------------------------- ../Response Team ------------------------ */
 
 
@@ -463,14 +521,91 @@ public function manageUsers(){
     return view('admin.manage_users', compact('pending_users'));
 }
 
+public function allcitizens() {
+    // Query to fetch users with the 'Citizens' role
+    $users = User::select('id', 'name', 'email', 'contact', 'status')
+        ->whereHas('roles', function ($query) {
+            $query->where('name', 'Citizens');
+        })
+        ->orderBy('created_at', 'asc')
+        ->paginate(10); // Paginate directly from the query
+
+    return view('admin.allcitizens', compact('users'));
+}
+
+public function allcitizenstbl() {
+    // Query to fetch users with the 'Citizens' role
+    $users = User::select('id', 'name', 'email', 'contact', 'status')
+        ->whereHas('roles', function ($query) {
+            $query->where('name', 'Citizens');
+        })
+        ->orderBy('created_at', 'asc')
+        ->paginate(10); // Paginate directly from the query
+
+    return view('partials.allcitstbl', compact('users'))->render(); 
+}
+
+public function searchCitizens(Request $request) {
+    $query = $request->input('query');
+
+    // Search users with the specified role and name/email containing the query
+    $users = User::select('id', 'name', 'email', 'contact', 'status')
+        ->whereHas('roles', function ($q) {
+            $q->where('name', 'Citizens');
+        })
+        ->where(function ($q) use ($query) {
+            $q->where('name', 'like', '%' . $query . '%')
+                ->orWhere('email', 'like', '%' . $query . '%');
+        })
+        ->orderBy('created_at', 'asc')
+        ->paginate(10);
+
+    return view('partials.allcitstbl', compact('users'))->render();
+}
+
+public function deleteUser($userId) {
+    $user = User::find($userId);
+
+    if (!$user) {
+        return response()->json(['error' => 'User not found.'], 404);
+    }
+
+    // Delete the user record from the database
+    $user->delete();
+
+    return response()->json(['success' => 'User deleted successfully']);
+}
+
+
+
 public function citizenstbl(){
     $pending_users = User::select('id', 'name', 'email', 'contact', 'created_at', 'status')
             ->where('status', 'pending')
+            // ->whereHas('permissions', function ($query) {
+            //     $query->whereIn('name', ['read-userHome', 'write-userHome']);
+            // })
             ->orderBy('created_at', 'asc')
             ->paginate(5);
     
     return view('partials.manageuserstbl', compact('pending_users'))->render();
 }
+
+public function searchPendingUsers(Request $request) {
+    $query = $request->input('query');
+
+    $pending_users = User::select('id', 'name', 'email', 'contact', 'created_at', 'status')
+        ->where('status', 'pending')
+        ->where(function($q) use ($query) {
+            $q->where('name', 'like', '%' . $query . '%')
+                ->orWhere('email', 'like', '%' . $query . '%')
+                ->orWhere('contact', 'like', '%' . $query . '%');
+        })
+        ->orderBy('created_at', 'asc')
+        ->paginate(5);
+
+    return view('partials.manageuserstbl', compact('pending_users'))->render();
+}
+
 
 public function approveUser($userId)
 {
@@ -513,4 +648,84 @@ public function getUserDetails(User $user) // Utilizing route model binding
         ]);
     }
 /** ------------------------ ./Manage Users -------------------------- */
+
+public function profileView() {
+    $userId = auth()->user()->id;
+    $user = User::find($userId);
+
+    return view('layouts.app', compact('user')); // Pass the user directly
+}
+
+public function updateProfile(Request $request) {
+    $userId = auth()->user()->id;
+    $user = User::findOrFail($userId);
+
+    // Validate request data
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|string|email|max:255|unique:users,email,' . $userId,
+        'new_password' => 'nullable|string|min:8',
+        'confirm_password' => 'nullable|string|min:8',
+    ]);
+
+    // Update name and email
+    $user->name = $request->input('name');
+    $user->email = $request->input('email');
+
+    // Handle password update
+    if ($request->filled('new_password')) {
+        $newPassword = $request->input('new_password');
+        $confirmPassword = $request->input('confirm_password');
+
+        if ($newPassword === $confirmPassword) {
+            $user->password = Hash::make($newPassword);
+        } else {
+            return redirect()->back()->withInput()->withErrors(['confirm_password' => 'The new password confirmation does not match.']);
+        }
+    }
+
+    $user->save();
+
+    return redirect()->back()->with('success', 'Profile updated successfully');
+}
+
+public function allReportsView() {
+    $query = incident_reports::with(['modelref_incidenttype'])
+                ->orderBy('created_at', 'desc');
+
+
+    $reports = $query->paginate(10); 
+
+    return view('admin.allreports', compact('reports'));
+}
+
+public function allReportsTbl()
+{
+    $query = incident_reports::with(['modelref_incidenttype'])
+                ->orderBy('created_at', 'desc');
+
+    $reports = $query->paginate(10);
+
+    return view('partials.allrepstbl', compact('reports'))->render();
+}
+
+public function searchReports(Request $request) {
+    $query = $request->input('query');
+
+    $reports = incident_reports::with(['modelref_incidenttype'])
+        ->where(function ($q) use ($query) {
+            $q->where('reporter', 'like', '%' . $query . '%')
+                ->orWhere('contact', 'like', '%' . $query . '%')
+                ->orWhere('address', 'like', '%' . $query . '%')
+                ->orWhere('eventdesc', 'like', '%' . $query . '%')
+                ->orWhereHas('modelref_incidenttype', function ($q) use ($query) {
+                    $q->where('cases', 'like', '%' . $query . '%');
+                });
+        })
+        ->orderBy('created_at', 'desc')
+        ->paginate(10);
+
+    return view('partials.allrepstbl', compact('reports'))->render();
+}
+
 }

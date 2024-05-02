@@ -7,6 +7,10 @@ use App\Events\RoutingResolve;
 use Illuminate\Http\Request;
 use App\Models\IncidentTypes;
 use App\Models\incident_reports;
+use App\Models\User;
+use App\Models\responseTeam_model;
+use App\Models\rtMembers_model;
+use App\Models\IncidentDeploymentModel;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -90,4 +94,23 @@ class CitizenController extends Controller
         }
     }
     //add Incident Report END
+
+    public function fetchIncidentsforMapCitizens()
+    {
+        $incidentsForMap = incident_reports::with(['modelref_incidenttype'])
+        // ->whereDate('created_at', Carbon::today())
+        ->whereIn('status', ['Pending', 'Ongoing'])
+        ->get(['id', 'reporter', 'contact','lat', 'long', 'eventdesc', 'imagedir', 'incident']);
+    
+        // Adjusting image URL
+        $incidentsForMap->transform(function ($incident) {
+            if (!empty($incident->imagedir)) {
+                $incident->image_url = asset('images/' . $incident->imagedir); // Using asset() helper to get the full URL
+            }
+            $incident->case_type = $incident->modelref_incidenttype->cases ?? 'N/A'; // Fallback if relationship is missing
+            return $incident;
+        });
+    
+        return response()->json($incidentsForMap);
+    }
 }

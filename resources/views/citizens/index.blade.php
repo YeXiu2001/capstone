@@ -10,16 +10,16 @@
     <!-- leaflet geocoder for search -->
     <link rel="stylesheet" href="{{url('assets/js/maps/Control.Geocoder.css') }}" />
 
-
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
 
 <!-- Leaflet Dependencies -->
 @section('content')
 
  <!-- Make sure you put this AFTER Leaflet's CSS -->
-
     <style>
         #map{
-            height: 85%;
+            height: 85vh;
         }
 
         .map-container{
@@ -119,7 +119,6 @@
     </div>
 <!-- Report on my Location Modal -->
 
-
 <!-- Map Implementation -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -139,7 +138,7 @@ var basemaps = {
 //Main map
 map = L.map('map', {
     center:[8.241137015981792, 124.24375643514865], //lat, long
-    zoom: 17,
+    zoom: 14,
     layers: [standard]
 });
 //Iligan City boundary geoJSON wikidata:Q285488 export geoJSON on overpass turbo, finalize on geojson.io
@@ -151,20 +150,73 @@ var geoOptions = {
         color: "#0000FF",
     },
 };
-
 //map layers/ control layer of basemaps and overlays
 var maplayers = L.control.layers(basemaps).addTo(map);
 //search Control plugin https://github.com/perliedman/leaflet-control-geocoder
 L.Control.geocoder().addTo(map);
 //leaflet-locate plugin https://github.com/domoritz/leaflet-locatecontrol
 L.control.locate().addTo(map);
-
     });
 </script>
 
 <!-- Report on my location -->
 <script>
   document.addEventListener('DOMContentLoaded', function(){
+
+        //Initialize fetch Reports
+        fetchReports();
+        var markers = {}; // Object to hold your markers
+
+        function fetchReports() {
+
+    var markersCluster = L.markerClusterGroup(); // Initialize the marker cluster group
+
+    fetch('/fetch-reports')
+    .then(response => response.json())
+    .then(data => {
+        data.forEach(incident => {
+            var popupContent = `<strong>Reporter:</strong> ${incident.reporter}<br>
+                                <strong>Contact Number:</strong> ${incident.contact}<br>
+                                <strong>Case:</strong> ${incident.case_type}<br>
+                                <strong>Description:</strong> ${incident.eventdesc}<br>
+                                ID: ${incident.id}`;
+
+            if (incident.image_url) {
+                popupContent += `<br><img src="${incident.image_url}" style="max-width: 125px;">`; // Adjust styling as needed
+            }
+
+            // Determining the icon based on the incident type
+            var iconUrl = '/markerIcons/default.png'; // Default icon
+            var incidentType = incident.case_type.toLowerCase(); // Case insensitive comparison
+
+            if (incidentType.includes('mountain search')) {
+                iconUrl = '/markerIcons/mountain-marker.png';
+            } else if (incidentType.includes('water search')) {
+                iconUrl = '/markerIcons/water-marker.png';
+            } else if (incidentType.includes('trauma case')) {
+                iconUrl = '/markerIcons/trauma-marker.png';
+            } else if (incidentType.includes('medical case')) {
+                iconUrl = '/markerIcons/medical-marker.png';
+            }
+
+            // Creating a Leaflet Icon
+            var customIcon = L.icon({
+                iconUrl: iconUrl,
+                iconSize: [75, 75], // Increase the size of the icon
+                iconAnchor: [37, 41], // Point of the icon which will correspond to marker's location
+                popupAnchor: [1, -34] // Point from which the popup should open relative to the iconAnchor
+            });
+
+            const marker = L.marker([parseFloat(incident.lat), parseFloat(incident.long)], {icon: customIcon})
+                            .bindPopup(popupContent);
+            markersCluster.addLayer(marker); // Add marker to the MarkerClusterGroup
+        });
+        map.addLayer(markersCluster); // Add the MarkerClusterGroup to the map
+    })
+    .catch(error => console.log('Error fetching incidents:', error));
+}
+
+
     function onLocationFound(e) {
         var lat = e.latlng.lat;
         var lng = e.latlng.lng;
@@ -176,109 +228,105 @@ L.control.locate().addTo(map);
         // Construct the URL for Geoapify's Reverse Geocoding API
     var geoapifyUrl = `https://api.geoapify.com/v1/geocode/reverse?lat=${lat}&lon=${lng}&apiKey=9e0570cdff3b4149a9752d093a45f38b`;
 
-// Make a request to the Geoapify Reverse Geocoding API
-fetch(geoapifyUrl)
-    .then(response => response.json())
-    .then(data => {
-        if(data && data.features && data.features.length > 0) {
-            // Assume the first result is the most relevant
-            var address = data.features[0].properties.formatted;
-            // Update the address input field
-            document.getElementById('address').value = address;
-        } else {
-            // Handle no address found or other errors
-            console.error('No address found');
+    // Make a request to the Geoapify Reverse Geocoding API
+    fetch(geoapifyUrl)
+        .then(response => response.json())
+        .then(data => {
+            if(data && data.features && data.features.length > 0) {
+                // Assume the first result is the most relevant
+                var address = data.features[0].properties.formatted;
+                // Update the address input field
+                document.getElementById('address').value = address;
+            } else {
+                // Handle no address found or other errors
+                console.error('No address found');
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching address:', error);
+        });
         }
-    })
-    .catch(error => {
-        console.error('Error fetching address:', error);
-    });
-    }
 
-    // Attach event listener for when location is found
-    map.on('locationfound', onLocationFound);
+        // Attach event listener for when location is found
+        map.on('locationfound', onLocationFound);
 
-    // Start location tracking when the modal is shown
-    $('#myloc_report_modal').on('shown.bs.modal', function () {
-        // Start locating
-        map.locate({
-            setView: true,
-            maxZoom: 16,
-            watch: true,
-        });
-    });
-
-    $('#incident').select2({
-            dropdownParent: $('#myloc_report_modal')
+        // Start location tracking when the modal is shown
+        $('#myloc_report_modal').on('shown.bs.modal', function () {
+            // Start locating
+            map.locate({
+                setView: true,
+                maxZoom: 16,
+                watch: true,
+            });
         });
 
-
-    // Optionally, stop locating when the modal is hidden if continuous tracking is not needed
-    $('#myloc_report_modal').on('hidden.bs.modal', function () {
-        map.stop();
-    });
+        $('#incident').select2({
+                dropdownParent: $('#myloc_report_modal')
+            });
 
 
-/*------------------adding incident report------------------------*/
-$('#addIncidentReportForm').submit(function(e) {
-    e.preventDefault();
+        // Optionally, stop locating when the modal is hidden if continuous tracking is not needed
+        $('#myloc_report_modal').on('hidden.bs.modal', function () {
+            map.stop();
+        });
 
-    // Initialize a new FormData object
-    let formData = new FormData(this);
 
-    // AJAX request setup
-    $.ajax({
-        type: 'POST',
-        url: '/add-incident-report',
-        data: formData,
-        contentType: false,
-        processData: false,
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        },
-        success: function(response) {
-            console.log(response); // Assuming response is a JSON object
-            if (response.success) {
-                console.log('Success:', response.success);
+    /*------------------adding incident report------------------------*/
+    $('#addIncidentReportForm').submit(function(e) {
+        e.preventDefault();
+
+        // Initialize a new FormData object
+        let formData = new FormData(this);
+
+        // AJAX request setup
+        $.ajax({
+            type: 'POST',
+            url: '/add-incident-report',
+            data: formData,
+            contentType: false,
+            processData: false,
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function(response) {
+                console.log(response); // Assuming response is a JSON object
+                if (response.success) {
+                    console.log('Success:', response.success);
+                    $('#myloc_report_modal').modal('hide');
+                    $('#addIncidentReportForm').trigger('reset');
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: response.success,
+                        showConfirmButton: false,
+                        timer: 1500,
+                    });
+                    map.stop();
+                    fetchReports();
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('An error occurred:', error.toString());
+                let errorMessage = 'An error occurred while processing your request. Please try again later.';
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    errorMessage = xhr.responseJSON.error;
+                }
                 $('#myloc_report_modal').modal('hide');
                 $('#addIncidentReportForm').trigger('reset');
                 Swal.fire({
-                    icon: 'success',
-                    title: 'Success',
-                    text: response.success,
-                    showConfirmButton: false,
-                    timer: 1500,
+                    icon: 'error',
+                    title: 'Error',
+                    text: errorMessage,
                 });
             }
-        },
-        error: function(xhr, status, error) {
-            console.error('An error occurred:', error.toString());
-            let errorMessage = 'An error occurred while processing your request. Please try again later.';
-            if (xhr.responseJSON && xhr.responseJSON.error) {
-                errorMessage = xhr.responseJSON.error;
-            }
-            $('#myloc_report_modal').modal('hide');
-            $('#addIncidentReportForm').trigger('reset');
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: errorMessage,
-            });
-        }
+        });
     });
-});
-
-
-});
-
-    </script>
+    });
+</script>
 <!-- Report on my Location -->
 
 
 
-<script src="{{url('assets/js/maps/allBarangay.js')}}"></script>
-<script src="{{url('assets/js/maps/line.js')}}"></script>
-<script src="{{url('assets/js/maps/Iligan_full_admin_boundaries.js')}}"></script>
 <!-- Leaflet JS -->
 <script src="{{url('assets/libs/leaflet/leaflet.js') }}"></script>
 <!-- leaflet Providers -->
@@ -288,4 +336,5 @@ $('#addIncidentReportForm').submit(function(e) {
 <!-- leaflet locate control -->
 <script src="{{url('assets/js/maps/L.Control.Locate.min.js') }}"></script>
 
+<script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster-src.js"></script>
 @endsection

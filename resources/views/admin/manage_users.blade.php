@@ -17,6 +17,16 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
+                    <div class="search-section d-flex mb-4">
+                            <input type="text" id="searchField" class="form-control mr-2" placeholder="Search for Citizens">
+                            <button class="btn btn-primary btn-sm" id="searchBtn">Search</button>
+                            <button class="ms-2 btn btn-primary btn-sm" id="clearBtn">Clear</button>
+                        </div>
+                    <div class="d-flex justify-content-end">
+                            @can('read-manageusers')
+                                <a href="/allcitizens" class="btn btn-primary btn-sm mb-2">View All Citizens</a>
+                            @endcan
+                        </div>
                         @include('partials.manageuserstbl', ['pending_users' => $pending_users])
                     </div>
                 </div>
@@ -80,51 +90,97 @@
             alert("Something went wrong!");
         }
     });
-});
+    });
 
-$(document).on('click', '.delete-btn', function() {
-var userId = $(this).attr('data-id');
-$.ajax({
-    url: '/users/reject/' + userId,
-    type: 'POST',
-    data: {
-        _token: $('meta[name="csrf-token"]').attr('content'), // Ensure you have a meta tag for csrf-token in your head tag
-    },
-    success: function(response) {
-        // Reload part of the page or show a success message
-        alert("User rejected successfully");
-        fetchPendingusersTable()
-    },
-    error: function(error) {
-        console.log(error);
-        alert("Something went wrong!");
-    }
-});
-
-});
-
-$(document).on('click', '.view-btn', function() {
-    var userId = $(this).data('id');
+    $(document).on('click', '.delete-btn', function() {
+    var userId = $(this).attr('data-id');
     $.ajax({
-        url: '/users/details/' + userId,
-        type: 'GET',
-        success: function(data) {
-            // Assuming 'data' contains the user details (name, email, contact, imagedir)
-            let image =  data.id_card;
-            $('#view_user_modal .modal-body').html(`
-                <p><strong>Name:</strong> ${data.name}</p>
-                <p><strong>Email:</strong> ${data.email}</p>
-                <p><strong>Contact Number:</strong> ${data.contact}</p>
-                <strong><p>ID Image:</strong></p>
-                <img src="{{ asset('id_cards/${image}') }}" alt="No Image Available" style="width: 200px;">
-            `);
+        url: '/users/reject/' + userId,
+        type: 'POST',
+        data: {
+            _token: $('meta[name="csrf-token"]').attr('content'), // Ensure you have a meta tag for csrf-token in your head tag
+        },
+        success: function(response) {
+            // Reload part of the page or show a success message
+            alert("User rejected successfully");
+            fetchPendingusersTable()
         },
         error: function(error) {
             console.log(error);
-            alert("Could not fetch user details");
+            alert("Something went wrong!");
         }
     });
-});
+
+    });
+
+    $(document).on('click', '.view-btn', function() {
+        var userId = $(this).data('id');
+        $.ajax({
+            url: '/users/details/' + userId,
+            type: 'GET',
+            success: function(data) {
+                // Assuming 'data' contains the user details (name, email, contact, imagedir)
+                let image =  data.id_card;
+                $('#view_user_modal .modal-body').html(`
+                    <p><strong>Name:</strong> ${data.name}</p>
+                    <p><strong>Email:</strong> ${data.email}</p>
+                    <p><strong>Contact Number:</strong> ${data.contact}</p>
+                    <strong><p>ID Image:</strong></p>
+                    <img src="{{ asset('id_cards/${image}') }}" alt="No Image Available" style="width: 200px;">
+                `);
+            },
+            error: function(error) {
+                console.log(error);
+                alert("Could not fetch user details");
+            }
+        });
+    });
+
+
+    $(document).on('click', '.pagination a', function(event) {
+        event.preventDefault();
+        let page = $(this).attr('href').split('page=')[1];
+        fetchPendingusersTable(page);
+    });
+
+    function fetchPendingusersTable(page) {
+        $.ajax({
+            url: '/fetch-pendingusers-tbl?page=' + page,
+            success: function(data) {
+                $('#manageusers_table_container').html(data);
+            }
+        });
+    }
+
+    // Event listener for search button
+    $('#searchBtn').on('click', function() {
+        const query = $('#searchField').val();
+
+        if (!query) {
+            alert('Please enter a search query');
+            return;
+        }
+
+        $.ajax({
+            url: '/search-pending-users',
+            method: 'POST',
+            data: { query: query },
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            success: function(data) {
+                $('#manageusers_table_container').html(data);
+            },
+            error: function() {
+                alert('Error occurred while searching');
+            }
+        });
+    });
+
+    $('#clearBtn').on('click', function() {
+        $('#searchField').val(''); // Clear the search field
+        fetchPendingusersTable(); // Reload the table to its initial state
+    });
 });//DOM
 </script>
 @endsection

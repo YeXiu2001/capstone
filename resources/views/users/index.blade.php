@@ -3,7 +3,7 @@
 @section('content')
 
 <div class="card">
-    <div class="card-header">Manage Admins</div>
+    <div class="card-header"><h4 class="card-title card-title-dash">Manage Users</h4></div>
     <div class="card-body">
         @can('create-user')
             <a href="{{ route('users.create') }}" class="btn btn-success btn-sm my-2"><i class="bi bi-plus-circle"></i> Add New User</a>

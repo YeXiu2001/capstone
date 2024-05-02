@@ -9,7 +9,7 @@
                                 </tr>
                             </thead>
                             <tbody id="incident_type_tbody">
-                                @foreach($pending_users as $pu)
+                                @forelse($pending_users as $pu)
                                     <tr>
                                         <td>{{$pu->name}}</td>
                                         <td>{{$pu->email}}</td>
@@ -20,7 +20,11 @@
                                             <button class="btn btn-danger btn-sm delete-btn" data-id="{{$pu->id}}">Reject</button>
                                         </td>
                                     </tr>
-                                @endforeach
+                                @empty
+                                    <tr>
+                                        <td colspan="4">No pending users found</td>
+                                    </tr>
+                                @endforelse
                             </tbody>
                         </table>
                         <div class="pagination">

@@ -61,7 +61,7 @@
             </div>
             <div class="button-container mt-2">
                 <button type="button" class="btn btn-primary btn-sm mt-2" id="incident_dtls_btn" data-bs-toggle="modal" data-bs-target="#incident-details-modal"><i class="bx bx-detail"></i> Details</button>
-               
+                <button type="button" class="btn btn-primary btn-sm mt-2" onclick="location.reload()"></i> Reload</button>
             </div>
             
         </div>
@@ -160,6 +160,30 @@
 <!-- Routing Implementation-->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        const noTeam = @json($noTeam);
+
+        if (noTeam) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'No Team',
+                text: 'You are not assigned to any team.',
+                showConfirmButton: true,
+            });
+
+            return; // Exit early
+        }
+
+        const incidents = @json($incidents);
+        if (incidents.length === 0) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'No Reports',
+                text: 'You have no reports assigned to your team yet.',
+                showConfirmButton: true,
+            });
+
+            return; // Exit early
+        }
 
         navigator.geolocation.getCurrentPosition(function(location) {
         const userLat = location.coords.latitude;

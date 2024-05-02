@@ -17,7 +17,8 @@
                                         <td>{{ $teamtbl->createdByUser->name ?? 'N/A' }}</td>
                                         <td>{{ $teamtbl->UpdatedByUser->name ?? 'N/A' }}</td>
                                         <td>
-                                            <button class="btn btn-primary btn-sm edit-team-btn" data-id="{{$teamtbl->id}}" data-bs-toggle="modal" data-bs-target="#edit_t_modal">Edit</button> 
+                                            <button class="btn btn-primary btn-sm view-team-btn" data-id="{{$teamtbl->id}}" data-bs-toggle="modal" data-bs-target="#viewmem_modal">View Members</button>
+                                            <button class="btn btn-warning btn-sm edit-team-btn" data-id="{{$teamtbl->id}}" data-bs-toggle="modal" data-bs-target="#edit_t_modal">Edit</button> 
                                             <button class="btn btn-danger btn-sm delete-btn" id="del-team-btn" data-id="{{$teamtbl->id}}">Delete</button>
                                         </td>
                                     </tr>

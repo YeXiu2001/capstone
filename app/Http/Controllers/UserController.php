@@ -51,13 +51,17 @@ class UserController extends Controller
     {
         $input = $request->all();
         $input['password'] = Hash::make($request->password);
-
+    
+        // Set the 'status' field to 'approved'
+        $input['status'] = 'approved';
+    
         $user = User::create($input);
         $user->assignRole($request->roles);
-
+    
         return redirect()->route('users.index')
                 ->withSuccess('New user is added successfully.');
     }
+    
 
     /**
      * Display the specified resource.

@@ -6,9 +6,9 @@
     <div class="col-md-12">
 
         <div class="card">
-            <div class="card-header">
+        <div class="card-header">
                 <div class="float-start">
-                    Add New Role
+                    <h4 class="card-title card-title-dash">Add New Role</h4>
                 </div>
                 <div class="float-end">
                     <a href="{{ route('roles.index') }}" class="btn btn-primary btn-sm">&larr; Back</a>
