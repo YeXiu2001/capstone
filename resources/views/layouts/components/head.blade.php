@@ -7,7 +7,7 @@
     </title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- App favicon -->
-    <link rel="shortcut icon" href="{{url('assets/images/favicon.ico')}}">
+    <link rel="shortcut icon" href="{{url('assets/images/ligtas_icon.png')}}">
 
     <!-- Bootstrap Css -->
     <link href="{{url('assets/css/bootstrap.min.css')}}" rel="stylesheet" type="text/css" />

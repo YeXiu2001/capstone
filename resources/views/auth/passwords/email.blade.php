@@ -3,7 +3,7 @@
 
     @include('layouts.components.head')
 
-    <body class="auth-body-bg">
+    <body class="" style="background: #f4f2f1">
         
         <!-- <div>
             <div class="container-fluid p-0">
@@ -126,11 +126,11 @@
                 <div class="row justify-content-center">
                     <div class="col-md-8 col-lg-6 col-xl-5">
                         <div class="card overflow-hidden">
-                            <div class="bg-primary-subtle">
+                            <div class="" style="background: #022130">
                                 <div class="row">
                                     <div class="col-7">
-                                        <div class="text-primary p-4">
-                                            <h5 class="text-primary">Reset Password!</h5>
+                                        <div class="p-4" style="color: #f4f2f1">
+                                            <h5 class="">Reset Password!</h5>
                                         </div>
                                     </div>
                                     <div class="col-5 align-self-end">
@@ -143,7 +143,7 @@
                                     <a href="#" class="auth-logo-light">
                                         <div class="avatar-md profile-user-wid mb-4">
                                             <span class="avatar-title rounded-circle bg-light">
-                                                <img src="{{url('assets/images/logo-light.svg')}}" alt="" class="rounded-circle" height="34">
+                                                <img src="{{url('assets/images/ligtas_icon.svg')}}" alt="" class="rounded-circle" height="34">
                                             </span>
                                         </div>
                                     </a>
@@ -151,7 +151,7 @@
                                     <a href="#" class="auth-logo-dark">
                                         <div class="avatar-md profile-user-wid mb-4">
                                             <span class="avatar-title rounded-circle bg-light">
-                                                <img src="{{url('assets/images/logo.svg')}}" alt="" class="rounded-circle" height="34">
+                                                <img src="{{url('assets/images/ligtas_icon.svg')}}" alt="" class="rounded-circle" height="70">
                                             </span>
                                         </div>
                                     </a>
@@ -185,11 +185,11 @@
 
                                                 <div class="row mb-0">
                                                     <div class="col-md-12">
-                                                        <button type="submit" class="btn btn-primary">
+                                                        <button style="background: #30e483; color: #f4f2f1" type="submit" class="btn">
                                                             {{ __('Send Password Reset Link') }}
                                                         </button>
 
-                                                        <a href="/login" class="btn btn-info">Back</a>
+                                                        <a href="/login" class="btn" style="color: #ffbc2e">Go Back</a>
                                                     </div>
                                                 </div>
                                             </form>
