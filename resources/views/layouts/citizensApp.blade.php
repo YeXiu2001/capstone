@@ -5,37 +5,39 @@
     @vite(['resources/js/app.js'])
 </head>
 <style>
-    .navbar{
-        border-bottom: 2px solid red !important; /* Adding !important to ensure it overrides any existing border-bottom properties */
-    }
-/* 
-    .header-container {
-        padding-left: 20px;
-        padding-right: 20px;
-    }
-
-    @media (max-width: 700px) {
-        .header-container {
-            padding-left: 0;
-            padding-right: 0;
-            margin: 0px 0px 24px
+        .navbar {
+            background-color: #022130;
         }
-    } */
-</style>
+        .navbar-brand {
+            display: flex;
+            align-items: center; /* Align items vertically in the center */
+            color: white; /* Set default text color to white */
+        }
+        .navbar-brand h5 {
+            margin-left: 10px; /* Add some space between the logo and text */
+            font-weight: normal; /* Keep the font weight normal by default */
+        }
+        .navbar-brand strong {
+            color: #ffbc2e; /* Set a specific color for "GIS" text */
+        }
+        /* Add other styles as needed */
+    </style>
 
 <body>
 <nav class="navbar navbar-expand-lg">
         <div class="container-fluid">
-            <a href="/userHome" class="navbar-brand">LigtasGIS</a>
+            <a href="/userHome" class="navbar-brand">
+                <img src="assets/images/ligtas_icon.png" alt="Logo" width="50" height="50">
+                <h5>LIGTAS<strong>GIS</strong></h5>
+            </a>
             <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse justify-content-center" id="navbarCollapse">
                 <div class="navbar-nav">
-                    <a href="/userHome" class="nav-item nav-link" active>Home</a>
-                    <!-- <a href="#" class="nav-item nav-link">Profile</a>
-                    <a href="#" class="nav-item nav-link">Contact</a> -->
-                    <a href="{{ route('logout') }}" class="nav-item nav-link"  
+                    <a href="/userHome" class="nav-item nav-link" style="color: white;" active>Home</a>
+                    <!-- Uncomment or add other links as needed -->
+                    <a style="color: white;" href="{{ route('logout') }}" class="nav-item nav-link"
                         onclick="event.preventDefault();
                         document.getElementById('logout-form').submit();">
                          <i class="bx bx-log-out-circle"></i>

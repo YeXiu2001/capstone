@@ -119,7 +119,7 @@
 
                                     <div class="row mb-0">
                                         <div class="col-md-12">
-                                            <button type="submit" class="btn" style="background: #30e483; color: #f4f2f1">
+                                            <button type="submit" class="btn" style="background: #022130; color: #f4f2f1">
                                                 {{ __('Register') }}
                                             </button>
 

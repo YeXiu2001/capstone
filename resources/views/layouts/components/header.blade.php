@@ -4,21 +4,14 @@
         <div class="d-flex">
 
             <div class="navbar-brand-box">
-                <a href="/home" class="logo logo-dark">
-                    <span class="logo-sm">
-                        <img src="" alt="" height="22">
-                    </span>
-                    <span class="logo-lg">
-                        <img src="" alt="" height="17">
-                    </span>
-                </a>
+               
 
                 <a href="/home" class="logo logo-light">
                     <span class="logo-sm">
-                        <img src="" alt="" height="22">
+                    <img src="{{url('assets/images/ligtas_icon.png')}}" alt="wala" width="50px" height="50px">
                     </span>
                     <span class="logo-lg">
-                        <img src="" alt="" height="19">
+                    <img src="{{url('assets/images/ligtas_land_nobg.png')}}" alt="wala" width="200px" height="110px">
                     </span>
                 </a>
             </div>

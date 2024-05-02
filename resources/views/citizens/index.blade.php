@@ -10,6 +10,10 @@
     <!-- leaflet geocoder for search -->
     <link rel="stylesheet" href="{{url('assets/js/maps/Control.Geocoder.css') }}" />
 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/simplebar/6.2.5/simplebar.min.css" integrity="sha512-rptDreZF629VL73El0GaBEH9tlYEKDJFUr+ysb+9whgSGbwYfGGA61dVtQFL0qC8/SZv/EQFW5JtwEFf+8zKYg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/simplebar/6.2.5/simplebar.min.js" integrity="sha512-HV1U44HR4mYVDcsxzJpghYyGEy2PvbePe9UFXlV3vnzf4yFhbKA9QNpnhy4VWwnaC2jKzijITVWHPZBCOuc51g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
 
@@ -51,7 +55,7 @@
     </style>
 
 <div class="map-container m-4">
-    <div id="map"></div>
+    <div id="map" data-simplebar style="max-height: 85vh;"></div>
         <!-- <button class="btn btn-warning" id="report_witness" name="report_witness">I AM A WITNESS</button> -->
         <button class="btn btn-danger" id="sos" name="sos" data-bs-toggle="modal" data-bs-target="#myloc_report_modal">SOS</button>
 </div>

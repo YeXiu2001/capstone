@@ -21,7 +21,7 @@
                             <input type="text" id="searchField" class="form-control mr-2" placeholder="Search">
 
                             <button class="btn btn-primary btn-sm" id="searchBtn">Search</button>
-                            <button class="ms-2 btn btn-primary btn-sm" id="clearBtn">Clear</button>
+                            <button class="ms-2 btn btn-secondary btn-sm" id="clearBtn">Clear</button>
                         </div>
 
                         @include('partials.allrepstbl', ['reports' => $reports])

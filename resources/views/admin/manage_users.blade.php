@@ -20,7 +20,7 @@
                     <div class="search-section d-flex mb-4">
                             <input type="text" id="searchField" class="form-control mr-2" placeholder="Search for Citizens">
                             <button class="btn btn-primary btn-sm" id="searchBtn">Search</button>
-                            <button class="ms-2 btn btn-primary btn-sm" id="clearBtn">Clear</button>
+                            <button class="ms-2 btn btn-secondary btn-sm" id="clearBtn">Clear</button>
                         </div>
                     <div class="d-flex justify-content-end">
                             @can('read-manageusers')
