@@ -66,7 +66,8 @@ Route::post('/update-team-status/{id}', [mainmenuController::class, 'updateTeamS
 Route::get('/allreports', [mainmenuController::class, 'allReportsView']);
 Route::get('/fetch-all-reports', [mainmenuController::class, 'allReportsTbl']);
 Route::get('/search-reports', [mainmenuController::class, 'searchReports']);
-
+Route::post('/update-report-status', [mainmenuController::class, 'updateReportStatus']);
+Route::get('/get-report-counts', [mainmenuController::class, 'getReportCounts']);
 /** --------------------------../Reports Tab----------------------- */
 
 /** --------------------------../Reports Tab----------------------- */

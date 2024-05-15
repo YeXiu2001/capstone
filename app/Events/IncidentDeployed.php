@@ -9,35 +9,34 @@ use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
-use App\Models\incident_reports;
-use App\Models\responseTeam_model;
 
-class RoutingResolve implements ShouldBroadcast
+class IncidentDeployed implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $incident_report;
+    public $incident;
     public $team;
 
-    public function __construct(incident_reports $incident_report, responseTeam_model $team)
+    public function __construct($incident, $team)
     {
-        $this->incident_report = $incident_report;
+        $this->incident = $incident;
         $this->team = $team;
     }
 
     public function broadcastOn(): array
     {
         return [
-            new Channel('reports'),
+            new Channel('teams.' . $this->team->id),
         ];
     }
 
-    public function broadcastWith(): array
+    public function broadcastWith()
     {
         return [
-            'incident_id' => $this->incident_report->id,
-            'team_name' => $this->team->team_name,
-            'incident_status' => $this->incident_report->status,
+            'incident_id' => $this->incident->id,
+            'incident_reporter' => $this->incident->reporter,
+            'incident_address' => $this->incident->address,
+            'incident_description' => $this->incident->eventdesc,
         ];
     }
 }

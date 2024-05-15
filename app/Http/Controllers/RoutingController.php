@@ -91,26 +91,27 @@ class RoutingController extends Controller
         return response()->json($incidents, $team);
     }
 
-    public function resolveReport($id){
-        $userId = Auth()->user()->id;
-        $teamId = Auth()->user()->rtMembers->first()->teamRefTeams()->value('id');
+    public function resolveReport($id)
+{
+    $userId = Auth()->user()->id;
+    $teamId = Auth()->user()->rtMembers->first()->teamRefTeams()->value('id');
 
-        try{
-            $report = incident_reports::findOrFail($id);
-            $report->status = 'resolved';
-            $report->save();
+    try {
+        $report = incident_reports::findOrFail($id);
+        $report->status = 'resolved';
+        $report->save();
 
-            $team = responseTeam_model::findOrFail($teamId);
-            $team-> status = 'available';
-            $team->updated_by = $userId;
-            $team->save();
-            
-            event(new RoutingResolve($report, $team));
-            return response()->json(['success' => 'Incident Status Updated Successfully']);
-        }catch (\Exception $e) {    
-            return response()->json(['error' => 'Failed to update report status: ' . $e->getMessage()], 500);
-        }
-
+        $team = responseTeam_model::findOrFail($teamId);
+        $team->status = 'available';
+        $team->updated_by = $userId;
+        $team->save();
+        
+        event(new RoutingResolve($report, $team));
+        return response()->json(['success' => 'Incident Status Updated Successfully']);
+    } catch (\Exception $e) {    
+        return response()->json(['error' => 'Failed to update report status: ' . $e->getMessage()], 500);
     }
+}
+
 
 }

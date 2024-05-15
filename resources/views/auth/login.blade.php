@@ -1,6 +1,5 @@
 <!doctype html>
 <html lang="en">
-<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     @include('layouts.components.head')
 
     <body class="" style="background: #f4f2f1">

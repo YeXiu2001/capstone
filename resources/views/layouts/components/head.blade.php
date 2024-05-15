@@ -14,7 +14,7 @@
     <!-- Icons Css -->
     <link href="{{url('assets/css/icons.min.css')}}" rel="stylesheet" type="text/css" />
     <!-- select2 -->
-    <link href="{{url('assets/libs/select2/css/select2.min.css') }}" rel="stylesheet" type="text/css" />
+    <link href="{{url('assets/libs/select2/css/select2.min.css')}}" rel="stylesheet" type="text/css" />
     <!-- driverjs -->
     <link type="text/css" rel="stylesheet" href="{{url('assets/libs/driver.js/dist/driver.css') }}" />
     <!-- App Css-->

@@ -14,6 +14,7 @@ use Illuminate\Pagination\Paginator;
 use Spatie\Permission\Models\Role;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
+use App\Events\IncidentDeployed;
 class mainmenuController extends Controller
 {
     public function __construct()
@@ -180,73 +181,79 @@ class mainmenuController extends Controller
     ]);
 }
 
-    public function fetchIncidentsforMap()
-    {
-        $incidentsForMap = incident_reports::with(['modelref_incidenttype'])
-        ->where('status', 'pending')
-        ->orWhere('status', 'ongoing')
-        ->orWhere('status', 'resolved')
+public function fetchIncidentsforMap()
+{
+    $incidentsForMap = incident_reports::with(['modelref_incidenttype'])
+        ->where(function($query) {
+            $query->where('status', 'pending')
+                  ->orWhere('status', 'ongoing')
+                  ->orWhere('status', 'resolved');
+        })
         ->whereDate('created_at', Carbon::today())
         ->get(['id', 'reporter', 'contact','lat', 'long', 'eventdesc', 'imagedir', 'incident']);
     
-        // Adjusting image URL
-        $incidentsForMap->transform(function ($incident) {
-            if (!empty($incident->imagedir)) {
-                $incident->image_url = asset('images/' . $incident->imagedir); // Using asset() helper to get the full URL
-            }
-            $incident->case_type = $incident->modelref_incidenttype->cases ?? 'N/A'; // Fallback if relationship is missing
-            return $incident;
-        });
+    // Adjusting image URL
+    $incidentsForMap->transform(function ($incident) {
+        if (!empty($incident->imagedir)) {
+            $incident->image_url = asset('images/' . $incident->imagedir); // Using asset() helper to get the full URL
+        }
+        $incident->case_type = $incident->modelref_incidenttype->cases ?? 'N/A'; // Fallback if relationship is missing
+        return $incident;
+    });
+
+    return response()->json($incidentsForMap);
+}
+
+
+public function updateReportKanban(Request $request){
+    $report = incident_reports::find($request->reportId);
+    if (!$report) {
+        return response()->json(['message' => 'Report not found.'], 404);
+    }
+    $report->status = $request->newStatus;
+    $report->save();
     
-        return response()->json($incidentsForMap);
+    $incidentId = $request->reportId;
+    $deployed_rteams = $request->input('deployedRteam');
+    
+    if (!$deployed_rteams || !is_array($deployed_rteams)) {
+        return response()->json(['error' => 'No Response Teams Provided'], 422);
     }
 
-    public function updateReportKanban(Request $request){
-        $report = incident_reports::find($request->reportId);
-        if (!$report) {
-            return response()->json(['message' => 'Report not found.'], 404);
-        }
-        $report->status = $request->newStatus;
-        $report->save();
-        
-        $incidentId = $request->reportId;
-        $deployed_rteams = $request->input('deployedRteam');
-        
-        if (!$deployed_rteams || !is_array($deployed_rteams)) {
-            return response()->json(['error' => 'No Response Teams Provided'], 422);
-        }
-    
-        $deployedTeamNames = [];
-        try {
-            foreach ($deployed_rteams as $deployed_rteamId) {
-                // Deploy each response team
-                IncidentDeploymentModel::create([
-                    'incident_id' => $incidentId,
-                    'deployed_rteam' => $deployed_rteamId,
-                    'deployed_by' => auth()->user()->id,
-                ]);
-                
-                // Update response team status to 'busy'
-                $responseTeam = responseTeam_model::find($deployed_rteamId);
-                if ($responseTeam) {
-                    $responseTeam->status = 'busy';
-                    $responseTeam->save();
-                    $deployedTeamNames[] = $responseTeam->team_name;
-                }
-            }
-    
-            // Get the name of the user who deployed the team
-            $deployedByUser = auth()->user()->name;
-    
-            return response()->json([
-                'success' => 'Deployed successfully.',
-                'deployedTeams' => $deployedTeamNames,
-                'deployedBy' => $deployedByUser
+    $deployedTeamNames = [];
+    try {
+        foreach ($deployed_rteams as $deployed_rteamId) {
+            // Deploy each response team
+            IncidentDeploymentModel::create([
+                'incident_id' => $incidentId,
+                'deployed_rteam' => $deployed_rteamId,
+                'deployed_by' => auth()->user()->id,
             ]);
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Failed to Deploy: ' . $e->getMessage()], 500);
+            
+            // Update response team status to 'busy'
+            $responseTeam = responseTeam_model::find($deployed_rteamId);
+            if ($responseTeam) {
+                $responseTeam->status = 'busy';
+                $responseTeam->save();
+                $deployedTeamNames[] = $responseTeam->team_name;
+
+                // Trigger the IncidentDeployed event
+                event(new IncidentDeployed($report, $responseTeam));
+            }
         }
+
+        // Get the name of the user who deployed the team
+        $deployedByUser = auth()->user()->name;
+
+        return response()->json([
+            'success' => 'Deployed successfully.',
+            'deployedTeams' => $deployedTeamNames,
+            'deployedBy' => $deployedByUser
+        ]);
+    } catch (\Exception $e) {
+        return response()->json(['error' => 'Failed to Deploy: ' . $e->getMessage()], 500);
     }
+}
     
     public function ongoingToResolved(Request $request){
         $report = incident_reports::find($request->reportId);
@@ -690,14 +697,39 @@ public function updateProfile(Request $request) {
 }
 
 public function allReportsView() {
-    $query = incident_reports::with(['modelref_incidenttype'])
-                ->orderBy('created_at', 'desc');
+    $reports = incident_reports::with(['modelref_incidenttype'])
+                ->orderBy('created_at', 'desc')
+                ->paginate(10);
 
+    // Fetch reporters with the specified permission
+    $users = User::all();
+    $reporters = $users->filter(function ($user) {
+        return $user->hasPermissionTo('write-userHome');
+    })->values();
 
-    $reports = $query->paginate(10); 
+    // Fetch all incident types
+    $incident_types = IncidentTypes::select('id', 'cases')->get();
 
-    return view('admin.allreports', compact('reports'));
+    // Define the incident statuses
+    $incident_statuses = ['pending', 'ongoing', 'resolved', 'dismissed'];
+   // Counts for data cards
+   $unresolvedReportsCount = incident_reports::whereIn('status', ['pending', 'ongoing'])->count();
+   $respondedReportsCount = incident_reports::where('status', 'resolved')->count();
+   $fakeReportsCount = incident_reports::where('status', 'dismissed')->count();
+
+   return view('admin.allreports', compact(
+       'reports', 
+       'reporters', 
+       'incident_types', 
+       'incident_statuses', 
+       'unresolvedReportsCount', 
+       'respondedReportsCount', 
+       'fakeReportsCount'
+   ));
 }
+
+
+
 
 public function allReportsTbl()
 {
@@ -710,22 +742,61 @@ public function allReportsTbl()
 }
 
 public function searchReports(Request $request) {
-    $query = $request->input('query');
+    $query = incident_reports::with(['modelref_incidenttype'])
+                ->orderBy('created_at', 'desc');
 
-    $reports = incident_reports::with(['modelref_incidenttype'])
-        ->where(function ($q) use ($query) {
-            $q->where('reporter', 'like', '%' . $query . '%')
-                ->orWhere('contact', 'like', '%' . $query . '%')
-                ->orWhere('address', 'like', '%' . $query . '%')
-                ->orWhere('eventdesc', 'like', '%' . $query . '%')
-                ->orWhereHas('modelref_incidenttype', function ($q) use ($query) {
-                    $q->where('cases', 'like', '%' . $query . '%');
-                });
-        })
-        ->orderBy('created_at', 'desc')
-        ->paginate(10);
+    if ($request->filled('date_from')) {
+        $query->whereDate('created_at', '>=', $request->input('date_from'));
+    }
+
+    if ($request->filled('date_to')) {
+        $query->whereDate('created_at', '<=', $request->input('date_to'));
+    }
+
+    if ($request->filled('reporter')) {
+        $reporterName = $request->input('reporter');
+        $query->where('reporter', $reporterName);
+    }
+
+    if ($request->filled('itype')) {
+        $query->where('incident', $request->input('itype'));
+    }
+
+    if ($request->filled('rep_status')) {
+        $query->where('status', $request->input('rep_status'));
+    }
+
+    $reports = $query->paginate(10);
 
     return view('partials.allrepstbl', compact('reports'))->render();
 }
+
+public function updateReportStatus(Request $request) {
+    $request->validate([
+        'report_id' => 'required|exists:incidents,id',
+        'status' => 'required|in:' . implode(',', array_keys(\App\Models\incident_reports::INCIDENT_STATUS)),
+    ]);
+
+    $report = incident_reports::findOrFail($request->report_id);
+    $report->status = $request->status;
+    $report->save();
+
+    return response()->json(['message' => 'Status updated successfully']);
+}
+public function getReportCounts() {
+    // Counts for data cards
+    $unresolvedReportsCount = incident_reports::whereIn('status', ['pending', 'ongoing'])->count();
+    $respondedReportsCount = incident_reports::where('status', 'resolved')->count();
+    $fakeReportsCount = incident_reports::where('status', 'dismissed')->count();
+
+    return response()->json([
+        'unresolvedReportsCount' => $unresolvedReportsCount,
+        'respondedReportsCount' => $respondedReportsCount,
+        'fakeReportsCount' => $fakeReportsCount
+    ]);
+}
+
+
+
 
 }

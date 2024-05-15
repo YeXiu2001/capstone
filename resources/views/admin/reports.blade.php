@@ -107,7 +107,7 @@
                     <!-- end col -->
 
                     <div class="col-lg-4">
-                        <div class="card mb-2" style="border-color: orange; border-width: 2px; border-style: solid;">
+                        <div class="card mb-2" style="border-color: gray; border-width: 2px; border-style: solid;">
                             <div class="card-body">
                                 <h4 class="card-title mb-4">In Progress</h4>
                                     <div id="inprog-kanban">
@@ -160,7 +160,7 @@
                     <!-- end col -->
 
                     <div class="col-lg-4">
-                        <div class="card mb-5" style="border-color: green; border-width: 2px; border-style: solid;">
+                        <div class="card mb-5" style="border-color: gray; border-width: 2px; border-style: solid;">
                             <div class="card-body">
                                 <h4 class="card-title mb-4">Resolved</h4>
                                     <div id="resolved-kanban">
@@ -790,6 +790,32 @@
             timer: 1500
         });
     });
+
+
+    Echo.channel('reports')
+            .listen('AddReport', (e) => {
+                setTimeout(function() {
+                    console.log('Incident report event received:', e);
+                    toastr.warning('New Report has been Submitted', 'REMINDER!');
+                }, 7000);
+            })
+            .listen('RoutingResolve', (e) => {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Incident Resolved',
+                    html: `The incident with ID: ${e.incident_id} has been resolved by team: ${e.team_name}.<br><br><button id="confirm-toast-btn" class="swal2-confirm swal2-styled">Confirm</button>`,
+                    showConfirmButton: false,
+                    didRender: () => {
+                        // Add event listener to the custom confirm button
+                        const confirmButton = document.getElementById('confirm-toast-btn');
+                        confirmButton.addEventListener('click', () => {
+                            // Reinitialize the Kanban board
+                            fetchKanbanData();
+                            Swal.close();
+                        });
+                    }
+                });
+            });
     });//DOM
 </script>
 <!-- New Kanban Script -->
@@ -885,7 +911,7 @@ $(document).ready(function() {
 
 <!-- Edit Pending Report Modal END -->
 
-<script>
+<!-- <script>
     document.addEventListener('DOMContentLoaded', function() {
         Echo.channel('reports')
             .listen('AddReport', (e) => {
@@ -893,9 +919,18 @@ $(document).ready(function() {
                     console.log('Incident report event received:', e);
                     toastr.warning('New Report has been Submitted', 'REMINDER!');
                 }, 7000);
+            })
+            .listen('RoutingResolve', (e) => {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Incident Resolved',
+                    text: `The incident with ID: ${e.incident_id} has been resolved by team: ${e.team_name}.`,
+                    showConfirmButton: true,
+                });
             });
     });
-</script>
+</script> -->
+
 <!-- Bootstrap Toasts Js -->
 <script src="{{url('assets/libs/toastr/build/toastr.min.js')}}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>

@@ -4,14 +4,13 @@
 <script src="{{url('assets/libs/simplebar/simplebar.min.js')}}"></script>
 <script src="{{url('assets/libs/node-waves/waves.min.js')}}"></script>
 <script src="{{url('assets/libs/sweetalert2/sweetalert2.all.min.js')}}"></script>
-
+<script src="{{url('assets/libs/select2/js/select2.min.js') }}"></script>
 
 <!-- dashboard init -->
 <script src="{{url('assets/js/pages/dashboard.init.js')}}"></script>
  <!-- form repeater js -->
 
 <script src="{{url('assets/js/pages/form-repeater.int.js') }}"></script>
-<script src="{{url('assets/libs/select2/js/select2.min.js') }}"></script>
 
 <!-- driverjs -->
 <script src="{{url('assets/libs/driver.js/dist/driver.js.iife.js') }}"></script>

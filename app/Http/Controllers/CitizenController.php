@@ -98,7 +98,7 @@ class CitizenController extends Controller
     public function fetchIncidentsforMapCitizens()
     {
         $incidentsForMap = incident_reports::with(['modelref_incidenttype'])
-        // ->whereDate('created_at', Carbon::today())
+        ->whereDate('created_at', Carbon::today())
         ->whereIn('status', ['Pending', 'Ongoing'])
         ->get(['id', 'reporter', 'contact','lat', 'long', 'eventdesc', 'imagedir', 'incident']);
     
